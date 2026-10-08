@@ -217,7 +217,7 @@ The host has its part too: `wasmtime serve` runs a component of wasi with
 ## wasip3
 
 The same main works on WASI 0.3; only the build differs, as webcpp builds it
-and its wasip3 lane serves it:
+and serves it on wasip3:
 
 - the world exports `wasi:http/handler@0.3.0`, with the WIT of `wasi:http`
   0.3.0 in `wit/deps/`: the `wit/deps` directory of the Rust crate `wasip3`
@@ -269,11 +269,17 @@ developed inside Boost:
     cd webcpp
     b2 toolset=clang-wasip2 testing.launcher=wasmtime libs/wasi/test libs/wasi/example
 
-builds the tests and the example for wasm32-wasip2, with the toolset that
-`user-config.jam` registers against wasi-sdk, serves the example with
-wasmtime and compares its answers with its `.expected` file;
-`toolset=clang-wasip3` does the same for wasm32-wasip3. Natively, only what
-compiles without the component ABI is built.
+builds and runs the tests and the examples that are not served, for
+wasm32-wasip2, with the toolset that `user-config.jam` registers against
+wasi-sdk. The components wasmtime serves, the example's among them, run in a
+lane of their own, `http`, in the tests and in the examples:
+
+    b2 toolset=clang-wasip2 testing.launcher=wasmtime \
+        libs/wasi/test//http libs/wasi/example//http
+
+builds each, has wasmtime serve it and compares its answers with its
+`.expected` file. `toolset=clang-wasip3` does the same for wasm32-wasip3.
+Natively, only what compiles without the component ABI is built.
 
 ## Documentation
 
