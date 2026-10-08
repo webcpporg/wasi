@@ -26,9 +26,10 @@ component.
 The WASI toolsets are b2's `clang`, registered against wasi-sdk 34 under the
 versions `wasip2` and `wasip3`, so that `toolset=clang-wasip2` and
 `toolset=clang-wasip3` name them. A `user-config.jam` registers them with
-these lines, the first of which names wasi-sdk's directory; the CI writes the
-other two into the user-config of each of its WASI lanes, with the directory
-where it installed wasi-sdk:
+these lines, the first two of which name wasi-sdk's directory and give it to
+the build, which builds the component of a script with it
+(<<wasi-testing-library>>); the CI writes them into the user-config of each
+of its WASI lanes, with the directory where it installed wasi-sdk:
 
 [listing]
 ----
