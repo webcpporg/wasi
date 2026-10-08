@@ -68,8 +68,11 @@ only generated names it uses are those of the standard interfaces and those
 banned word, which refuses the name of the program wasi was first written
 for in every file, file name and commit, _and by review_.
 . [[wasi-invariant-9]]*A response that cannot be sent as the main wrote it is
-refused, not altered.* A status outside 100 to 599 is not sent: the handler
-answers an internal error instead, before anything is committed, on both
-versions. _Held by_ `http_bad_status`, whose statuses 0, 99, 600 and 65736
-answer wasmtime's `500 Internal Server Error`, and 599 is sent as it is, on
-wasip2 and on wasip3.
+refused, not altered.* A status outside 100 to 599, and a content type the
+host refuses as a field value, are not sent: the handler answers an internal
+error instead, before anything is committed, on both versions. _Held by_
+`http_bad_status`, whose statuses 0, 99, 600 and 65736 answer wasmtime's
+`500 Internal Server Error`, and 599 is sent as it is; and by
+`http_bad_content_type`, whose content types with a CR and an LF, and with a
+NUL, answer the same, and one with a tab is sent as it is; on wasip2 and on
+wasip3.
