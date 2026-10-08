@@ -33,11 +33,14 @@ version of WASI it is built for. A build provides it with these:
 | For `webcpp_wasi_http.h`.
 
 | `-mexec-model=reactor` on the link
-| A component exports a handler and has no C `main`.
-
-| `-S cli` on `wasmtime serve`
-| wasi-libc imports parts of `wasi:cli`.
+| The program is a reactor: it exports a handler and has no C `main`.
+  wasmtime 47 also serves the same program linked without it, as a
+  command, but webcpp builds and tests reactors.
 |===
+
+The host has its part too: `wasmtime serve` runs a component of wasi with
+`-S cli`, since wasi-libc imports parts of `wasi:cli`, and on wasip3 with
+`-S cli,p3 -W component-model-async` (<<wasi-wasip3>>).
 
 [#wasi-build-b2]
 === With b2
@@ -88,42 +91,33 @@ A `user-config.jam` may set any of them as `-s` does, with
 [#wasi-build-by-hand]
 === By hand
 
-The same component, built with wasi-sdk alone, from a directory that holds
-`main.cpp`, the complete example's source, and the world the component
-exports, `wit/world.wit`, named as the program likes:
+The same component builds with wasi-sdk and wit-bindgen alone, from a
+directory that holds `main.cpp`, the complete example's source, and the
+world the component exports, `wit/world.wit`, named as the program likes:
 
 [listing]
 ----
-package example:hello;
-
-world service {
-  export wasi:http/incoming-handler@0.2.12;
-}
+include::{examples}/by_hand/p2/wit/world.wit[tag=world]
 ----
 
 with `wit/deps/` linked to the `wasi:http` 0.2.12 WIT, the `wit/deps`
-directory of the Rust crate `wasip2` 1.0.4. The bindings are generated with
-the world renamed `webcpp_wasi_http`; then wasi-sdk's `clang` compiles them
-as C, and its `clang++` compiles and links a reactor, where `<wasi>` is
-wasi's directory:
+directory of the Rust crate `wasip2` 1.0.4. wit-bindgen generates the
+bindings with the world renamed `webcpp_wasi_http`; then wasi-sdk's `clang`
+compiles them as C, and its `clang++` compiles and links a reactor:
 
 [source,bash]
 ----
-wit-bindgen c --world service --rename-world webcpp_wasi_http --out-dir gen wit
-
-clang --target=wasm32-wasip2 -c gen/webcpp_wasi_http.c -o gen/webcpp_wasi_http.o -Igen
-clang++ --target=wasm32-wasip2 -std=c++20 -fno-exceptions -mexec-model=reactor \
-    -DWEBCPP_WASI_HTTP_P2 -I<wasi>/include -Igen \
-    main.cpp gen/webcpp_wasi_http.o gen/webcpp_wasi_http_component_type.o -o hello.wasm
+include::{examples}/by_hand/build.sh[tag=p2]
 ----
 
-wasmtime serves it, and answers the requests of the complete example as
-its transcript shows:
+`WIT_BINDGEN` is the wit-bindgen program, `WASI_SDK` wasi-sdk's directory
+and `WASI` wasi's. `wasmtime serve -S cli hello.wasm` then serves the
+component, which answers the requests of the complete example as its
+transcript shows.
 
-[source,bash]
-----
-wasmtime serve -S cli --addr 127.0.0.1:8080 hello.wasm
-----
-
-These commands were run as written with wasi-sdk 34, wit-bindgen 0.62.0 and
-wasmtime 47.0.3, and are run again when one of them moves.
+These are the commands of `example/by_hand/build.sh`, which the test
+`by_hand` of wasi's examples runs on the wasip2 lane, with the wasi-sdk,
+wit-bindgen and WIT the build found, before it serves the component and
+compares its answers with the complete example's transcript
+(<<wasi-testing-component>>). A change to them that breaks the build or the
+answers fails that lane.

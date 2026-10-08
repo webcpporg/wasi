@@ -53,8 +53,8 @@ each request, and sends what it returns.
 === Formatting it
 
 clang-format reads the body as a function's when its configuration names the
-two macros as the start and the end of a block, as wasi's own `.clang-format`
-does:
+two macros as the start and the end of a block. These are the two keys of
+wasi's own `.clang-format` that do it:
 
 [listing]
 ----

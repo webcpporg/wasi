@@ -11,9 +11,9 @@ wasi itself needs no Boost, but a component rarely stops at its handler: it
 parses JSON, computes, keeps state. webcpp builds every library it holds for
 wasm32-wasip2 and wasm32-wasip3, Boost included, and this chapter shows what
 its build does for that, so that a project of its own can do the same. Every
-listing below is either the build's own configuration, included from the
-file the build reads, or a program webcpp compiles and runs on both targets
-on every build.
+listing below is the build's own configuration, included from the file the
+build reads, or a program webcpp compiles and runs on both targets on every
+build.
 
 Boost.JSON, Boost.System, Boost.Decimal and Boost.MSM build and run on both
 targets in webcpp's lanes, as the tests and the examples of its libraries
@@ -26,12 +26,14 @@ component.
 The WASI toolsets are b2's `clang`, registered against wasi-sdk 34 under the
 versions `wasip2` and `wasip3`, so that `toolset=clang-wasip2` and
 `toolset=clang-wasip3` name them. A `user-config.jam` registers them with
-these lines, after `local wasi-sdk = /path/to/wasi-sdk ;`, which names
-wasi-sdk's directory; the CI writes the same lines into the user-config of
-each of its WASI lanes:
+these lines, the first of which names wasi-sdk's directory; the CI writes the
+other two into the user-config of each of its WASI lanes, with the directory
+where it installed wasi-sdk:
 
 [listing]
 ----
+include::{webcpp-root}/tools/ci/wasi-sdk.jam[tag=wasi-sdk]
+
 include::{webcpp-root}/tools/ci/wasi-sdk.jam[tag=wasip2]
 
 include::{webcpp-root}/tools/ci/wasi-sdk.jam[tag=wasip3]
@@ -60,12 +62,8 @@ include::{webcpp-root}/Jamroot[tag=wasi-target,indent=0]
 ----
 
 A program built so runs with wasmtime, which b2 starts for a test or an
-example with `testing.launcher=wasmtime`:
-
-[source,bash]
-----
-b2 toolset=clang-wasip2 testing.launcher=wasmtime libs/wasi/test libs/wasi/example
-----
+example given `testing.launcher=wasmtime` on its command line, beside
+`toolset=clang-wasip2` or `toolset=clang-wasip3` (<<wasi-testing-targets>>).
 
 [#wasi-boost-exceptions-wasip2]
 === No exceptions on wasip2
@@ -158,7 +156,7 @@ include::{examples}/boost_json_command.cpp[tag=text,indent=0]
 ----
 
 `main` parses it with an error code, reads its name and its routes, changes
-one of its limits and prints it whole, then parses a broken text:
+one of its limits and prints the limits, then parses a broken text:
 
 [source]
 ----

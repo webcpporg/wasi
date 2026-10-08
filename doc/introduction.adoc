@@ -9,8 +9,8 @@
 
 A WebAssembly component is a program that says, in WIT, what it imports from
 its host and what it exports to it. `wasi:http` is the WASI interface of HTTP:
-a component that exports its handler is called once for each request a host
-receives, such as `wasmtime serve`, and answers it. The handler's signature,
+a host of it, such as `wasmtime serve`, calls the handler a component
+exports once for each request it receives, and the handler answers it. The handler's signature,
 and every type it reads and writes, are the C functions and structs that
 wit-bindgen generates from the WIT, and they differ between WASI 0.2 and WASI
 0.3.

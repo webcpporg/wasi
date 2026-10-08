@@ -13,14 +13,17 @@ handler does the same on both versions, in this order:
 [listing]
 ----
 host (wasmtime serve)
-  calls the exported handler          exports_wasi_http_incoming_handler_handle (wasip2)
-                                      exports_wasi_http_handler_handle (wasip3)
+  calls the exported handler
+      exports_wasi_http_incoming_handler_handle   (wasip2)
+      exports_wasi_http_handler_handle            (wasip3)
     reads the method and the target
-    calls the main                    http_main(method, target) -> response
+    calls the main
+      http_main(method, target) -> response
     frees the request
     sends the status and the content-type
-    writes the body, every byte       wasip2: in chunks of at most 4096 bytes
-                                      wasip3: until the stream has taken it all
+    writes the body, every byte
+      wasip2: in chunks of at most 4096 bytes
+      wasip3: until the stream has taken it all
 ----
 
 . *It reads the method and the target.* A method of HTTP arrives as an
