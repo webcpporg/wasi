@@ -1,0 +1,13 @@
+# The tests inherit the superproject's configuration and switch off one
+# option.
+#
+# bugprone-exception-escape.CheckMain treats every test's main as a function
+# that should not throw. The response test's main lets what the standard
+# library may throw, a std::bad_alloc from a string that grows, end the
+# process uncaught, which fails the test as it should. The check stays on for
+# everything else: a noexcept function, a destructor, a move or a swap.
+---
+InheritParentConfig: true
+CheckOptions:
+  - key: bugprone-exception-escape.CheckMain
+    value: 'false'

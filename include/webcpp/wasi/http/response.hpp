@@ -27,8 +27,8 @@ struct response {
      Tip: meant for a literal; a view costs no allocation, where a std::string
      of 16 characters exceeds the small-string buffer of wasm32's libc++.
     */
-    std::string_view content_type;
-    std::string body;
+    std::string_view content_type{};
+    std::string body{};
 };
 
 }  // namespace webcpp::wasi::http

@@ -1,0 +1,9 @@
+GET /a?b=c%20d
+HEAD /a?b=c%20d
+POST /
+PUT /items/7
+DELETE /items/7
+OPTIONS *
+TRACE /trace
+PATCH /items/7?x=1&y=%2F
+PURGE /cache/key
