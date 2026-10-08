@@ -40,12 +40,12 @@ target `<stem>-component` is the same component, to serve by hand.
 The transcript writes each request as the curl command that sends it, which
 a shell runs as it is written:
 
-* `curl -i -X <METHOD> http://localhost:8080<target>`, each word quoted
+* `+curl -i -X <METHOD> http://localhost:8080<target>+`, each word quoted
   where a shell would read it otherwise, as the target `?name=ana` is;
 * `curl -I <url>` for `HEAD`, since `curl -X HEAD` waits for a body that
   never comes;
-* `--request-target '*'` before the bare origin for a target that is not a
-  path, the `*` of `OPTIONS *`.
+* `+--request-target '*'+` before the bare origin for a target that is not
+  a path, the `+*+` of `OPTIONS *`.
 
 Then come the status line, `HTTP/1.1 <status> <reason>`, the response's
 headers in lower case and sorted, an empty line and the body as it came.
