@@ -29,7 +29,7 @@ version of WASI it is built for. A build provides it with these:
 | The glue that calls the handler, and the world's type, which the
   component linker reads.
 
-| The bindings' directory on the include path
+| The directory of the bindings on the include path
 | For `webcpp_wasi_http.h`.
 
 | `-mexec-model=reactor` on the link

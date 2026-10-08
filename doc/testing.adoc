@@ -176,7 +176,8 @@ from scratch and records what b2 built and ran:
 
 [source,bash]
 ----
-b2 -a --dump-tests --out-xml=<lane>.xml toolset=<toolset> libs/wasi/test libs/wasi/example
+b2 -a --dump-tests --out-xml=<lane>.xml toolset=<toolset> \
+    libs/wasi/test libs/wasi/example
 ----
 
 webcpp's `tools/report/report.py` merges the files of every lane into a
