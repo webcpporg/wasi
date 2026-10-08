@@ -19,11 +19,11 @@ host (wasmtime serve)
     reads the method and the target
     calls the main
       http_main(method, target) -> response
-    frees the request
     sends the status and the content-type
     writes the body, every byte
       wasip2: in chunks of at most 4096 bytes
       wasip3: until the stream has taken it all
+    frees the request
 ----
 
 . *It reads the method and the target.* A method of HTTP arrives as an
@@ -31,8 +31,6 @@ host (wasmtime serve)
   which the main sees as it was sent. The target is the request's path and
   query, `"/"` when it has none.
 . *It calls the main,* with two views of the request.
-. *It frees the request,* only once the main has returned
-  (<<wasi-invariant-3,guarantee 3>>).
 . *It sends the response's head:* the status, and the `content-type` header
   when `content_type` is not empty, and no other header
   (<<wasi-invariant-7,guarantee 7>>).
@@ -42,6 +40,9 @@ host (wasmtime serve)
   it writes to the body's stream until the stream has taken every byte,
   waiting inside the task when a write blocks, then resolves the trailers
   future with no trailers.
+. *It frees the request,* only once the response is written, so a content
+  type that views the method or the target is valid while it is sent
+  (<<wasi-invariant-3,guarantee 3>>).
 
 A failure the host reports before the response is sent answers an internal
 error. Once it is sent, nothing can be taken back: a body not written whole

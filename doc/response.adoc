@@ -23,9 +23,10 @@ that a designated initializer names only what differs from it, as
 
 | `content_type`
 | `std::string_view`, empty by default
-| The `content-type` header, sent only when it is not empty. Give it a
-  string literal, such as `"application/json"`, so that it outlives the
-  main.
+| The `content-type` header, sent only when it is not empty. It is read
+  after the main has returned, so it views a string literal, such as
+  `"application/json"`, or the method or the target, never a string of the
+  main's own.
 
 | `body`
 | `std::string`, empty by default

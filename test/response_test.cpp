@@ -36,8 +36,9 @@ void designated() {
 /**
  The body is a copy: changing the text it was made from leaves it as it was.
 
- Tip: the handler frees the request once the main returns, so a body that
- pointed into it would be read after it was freed.
+ Tip: the handler sends the body after the main has returned, when the main's
+ own strings are gone, so a body that pointed into one would be read after it
+ was freed.
 */
 void owns_its_body() {
     std::string text = "hello";
