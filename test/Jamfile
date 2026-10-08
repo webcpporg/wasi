@@ -33,9 +33,10 @@ webcpp.serve http_no_content_type.cpp : <library>/webcpp/wasi//http ;
 webcpp.serve http_two_units.cpp : <library>/webcpp/wasi//http <source>http_two_units_answer.cpp ;
 
 # The entry point refuses a translation unit that defines neither target's
-# macro, and one that defines both: with the bindings of the target, and
-# without /webcpp/wasi//http, which would define its macro.
-webcpp.compile-fail neither_target_refused : neither_target_refused.cpp
+# macro, and one that defines both, with its guard's error and no other: with
+# the bindings of the target, and without /webcpp/wasi//http, which would
+# define its macro.
+webcpp.compile-diagnostic neither_target_refused : neither_target_refused.cpp
   : <library>/webcpp/wasi//http-bindings ;
-webcpp.compile-fail both_targets_refused : both_targets_refused.cpp
+webcpp.compile-diagnostic both_targets_refused : both_targets_refused.cpp
   : <library>/webcpp/wasi//http-bindings <define>WEBCPP_WASI_HTTP_P2 <define>WEBCPP_WASI_HTTP_P3 ;

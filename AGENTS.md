@@ -55,8 +55,11 @@ holds only what is specific to wasi.
   `-S cli,p3 -W component-model-async` on wasip3), sent each line
   `<METHOD> <target>` of `<stem>.requests`, and passed when the transcript of
   its answers equals `<stem>.expected`. The transcript writes each request as
-  `$ curl -i -X <METHOD> http://localhost:8080<target>`, and leaves out the
-  headers wasmtime adds to every response, `date` and `transfer-encoding`.
+  the curl command that sends it, which a shell runs as written:
+  `$ curl -i -X <METHOD> http://localhost:8080<target>`, quoted where a shell
+  would read it otherwise, `curl -I` for HEAD, and `--request-target '*'`
+  before the bare origin for `OPTIONS *`; it leaves out the headers wasmtime
+  adds to every response, `date` and `transfer-encoding`.
   `tools/component/serve.py` in the superproject holds the format.
 - **The README's example is a test.** Its `main.cpp` and its answers are
   copies of `example/http_hello.cpp` (the region `tag::main`) and

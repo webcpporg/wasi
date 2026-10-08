@@ -1,10 +1,10 @@
-$ curl -i -X GET http://localhost:8080/a?b=c%20d
+$ curl -i -X GET 'http://localhost:8080/a?b=c%20d'
 HTTP/1.1 200 OK
 content-type: text/plain; method=GET
 
 GET /a?b=c%20d
 
-$ curl -i -X HEAD http://localhost:8080/a?b=c%20d
+$ curl -I 'http://localhost:8080/a?b=c%20d'
 HTTP/1.1 200 OK
 content-type: text/plain; method=HEAD
 
@@ -27,7 +27,7 @@ content-type: text/plain; method=DELETE
 
 DELETE /items/7
 
-$ curl -i -X OPTIONS http://localhost:8080*
+$ curl -i -X OPTIONS --request-target '*' http://localhost:8080
 HTTP/1.1 200 OK
 content-type: text/plain; method=OPTIONS
 
@@ -39,7 +39,7 @@ content-type: text/plain; method=TRACE
 
 TRACE /trace
 
-$ curl -i -X PATCH http://localhost:8080/items/7?x=1&y=%2F
+$ curl -i -X PATCH 'http://localhost:8080/items/7?x=1&y=%2F'
 HTTP/1.1 200 OK
 content-type: text/plain; method=PATCH
 
