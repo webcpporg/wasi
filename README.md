@@ -130,8 +130,9 @@ program's target, `wit/http-p2.wit` or `wit/http-p3.wit`, renamed
 `webcpp_wasi_http`, and links them; and defines `WEBCPP_WASI_HTTP_P2` on the
 toolset `clang-wasip2`, or `WEBCPP_WASI_HTTP_P3` on `clang-wasip3`. A
 component is then an `exe` with that library and
-`<linkflags>-mexec-model=reactor`. `example/Jamfile` builds the example so,
-and serves it:
+`<linkflags>-mexec-model=reactor`, which `webcpp.serve` adds itself (the
+superproject's `tools/component/component.jam`), as `example/Jamfile` shows,
+building and serving the example:
 
 ```
 webcpp.targets wasip2 wasip3 ;
