@@ -144,8 +144,9 @@ include::{examples}/Jamfile[tag=by-hand,indent=0]
 ----
 
 The script is run as `build.sh <p2|p3> <component>`, with the tools b2 found
-for the lane in its environment: `WASI_SDK`, the directory of the lane's
-compiler, `WIT_BINDGEN`, and `WASI_WIT`, the WIT of the lane's version.
+for the lane in its environment: `WASI_SDK`, the directory of wasi-sdk that
+the user-config gives (<<wasi-boost-toolsets>>), else `.local/wasi-sdk`,
+`WIT_BINDGEN`, and `WASI_WIT`, the WIT of the lane's version.
 
 [#wasi-testing-targets]
 === Targets
