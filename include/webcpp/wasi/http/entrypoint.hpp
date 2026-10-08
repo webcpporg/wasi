@@ -84,6 +84,18 @@ inline std::string_view method_name(const wasi_http_types_method_t& method) {
 }
 
 /**
+ Whether wasi sends this status: 100 to 599, the five classes of HTTP.
+
+ @note A status outside them is refused as an internal error, not sent: on
+ the wire, wasi:http's set-status-code refuses some of them and leaves the
+ response at 200, and the conversion to its 16 bits makes 65736 read as 200
+ (doc: #wasi-invariant-9).
+*/
+inline bool sendable(unsigned status) {
+    return 100 <= status && status <= 599;
+}
+
+/**
  Builds the response's headers: its content type when it has one, and
  nothing else.
 
@@ -151,17 +163,22 @@ inline bool write_all(wasi_http_types_borrow_outgoing_body_t body, std::string_v
 }
 
 /**
- Sends the answer: status and headers first, then the body.
+ Sends the answer: status and headers first, then the body; or an internal
+ error, for a status wasi does not send.
 
  @note Once the outparam is set nothing can be taken back: a body not written
  whole is dropped without finish, which wasi:http reports as a failed response.
 */
 inline void respond(exports_wasi_http_incoming_handler_own_response_outparam_t out,
                     const response& answer) {
+    if (!sendable(answer.status)) {
+        refuse(out);
+        return;
+    }
     const wasi_http_types_own_outgoing_response_t response =
         wasi_http_types_constructor_outgoing_response(headers_of(answer));
     // Sets the status; the result is not read, because set-status-code fails
-    // only outside 100-599, where no status a main answers should be.
+    // only outside 100-599, which the guard above refused.
     static_cast<void>(wasi_http_types_method_outgoing_response_set_status_code(
         wasi_http_types_borrow_outgoing_response(response), static_cast<uint16_t>(answer.status)));
 
@@ -292,10 +309,27 @@ inline void handle(exports_wasi_http_incoming_handler_own_incoming_request_t req
 #else  // WEBCPP_WASI_HTTP_P3
 
 /**
+ Returns an internal error from the handler instead of a response, for a
+ failure found before anything was committed.
+*/
+inline void refuse() {
+    exports_wasi_http_handler_result_own_response_error_code_t result{};
+    result.is_err = true;
+    result.val.err.tag = WASI_HTTP_TYPES_ERROR_CODE_INTERNAL_ERROR;
+    result.val.err.val.internal_error.is_some = false;
+    exports_wasi_http_handler_handle_return(result);
+}
+
+/**
  Sends the answer: returns the response, with its status and headers, from
- the handler, then streams its body and resolves its trailers.
+ the handler, then streams its body and resolves its trailers; or returns an
+ internal error, for a status wasi does not send.
 */
 inline void respond(const response& answer) {
+    if (!sendable(answer.status)) {
+        refuse();
+        return;
+    }
     wasi_http_types_stream_u8_writer_t body_writer{};
     wasi_http_types_stream_u8_t contents = wasi_http_types_stream_u8_new(&body_writer);
     wasi_http_types_future_result_option_own_trailers_error_code_writer_t trailers_writer{};
@@ -307,7 +341,7 @@ inline void respond(const response& answer) {
     // could change nothing about a response already sent.
     wasi_http_types_future_result_void_error_code_drop_readable(made.f1);
     // Sets the status; the result is not read, because set-status-code fails
-    // only outside 100-599, where no status a main answers should be.
+    // only outside 100-599, which the guard above refused.
     static_cast<void>(wasi_http_types_method_response_set_status_code(
         wasi_http_types_borrow_response(made.f0), static_cast<uint16_t>(answer.status)));
 

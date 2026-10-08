@@ -18,8 +18,9 @@ that a designated initializer names only what differs from it, as
 
 | `status`
 | `unsigned`, 200 by default
-| The status, sent as it is. Keep it within 100 to 599, the codes
-  `wasi:http` accepts.
+| The status, sent as it is when it lies within 100 to 599, the five
+  classes of HTTP. Outside them the handler answers an internal error
+  instead of the main's response (<<wasi-invariant-9,guarantee 9>>).
 
 | `content_type`
 | `std::string_view`, empty by default
@@ -33,7 +34,17 @@ that a designated initializer names only what differs from it, as
 | The body, sent whole, however long.
 |===
 
-The handler sends no other header (<<wasi-invariant-7,guarantee 7>>). A
+The handler sends no other header (<<wasi-invariant-7,guarantee 7>>).
+
+A response the handler cannot send as the main wrote it, with a status
+outside 100 to 599, is not sent at all: the handler answers an internal
+error, before it has committed anything, and wasmtime 47 sends that as its
+own `500 Internal Server Error`, an HTML page that names it. Without the
+check, wasmtime would send some of those statuses as `200 OK`, and the
+status of `wasi:http`, 16 bits wide, would read 65736 as 200, so a main's
+bug would reach the client as a success.
+
+A
 `content_type` is a view rather than a string because it is nearly always a
 literal: a view of one costs nothing, where a `std::string` of
 `"application/json"`, 16 characters, would allocate on wasm32, where
