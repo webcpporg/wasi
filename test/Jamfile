@@ -25,18 +25,22 @@ webcpp.run response : response_test.cpp : : native wasip2 wasip3 ;
 # Components served by wasmtime, whose answers are their .expected: each
 # method reaches the main by name and the target verbatim; a body longer than
 # one write arrives whole; content-type is sent only when set, and no other
-# header; and two translation units that both include the entry point link
-# into one program, since the header defines only inline functions and macros.
+# header; two translation units that both include the entry point link into
+# one program, since the header defines only inline functions and macros; and
+# a content type that views the target arrives as the target reads, since the
+# handler frees the request only once the response is written.
 webcpp.serve http_methods.cpp : <library>/webcpp/wasi//http ;
 webcpp.serve http_long_body.cpp : <library>/webcpp/wasi//http ;
 webcpp.serve http_no_content_type.cpp : <library>/webcpp/wasi//http ;
 webcpp.serve http_two_units.cpp : <library>/webcpp/wasi//http <source>http_two_units_answer.cpp ;
+webcpp.serve http_content_type_of_target.cpp : <library>/webcpp/wasi//http ;
 
 # The served tests run in a lane of their own, http, on wasip2 and on wasip3,
 # which the library's ordinary lanes leave out:
 # `b2 toolset=clang-wasip2 testing.launcher=wasmtime libs/wasi/test//http`.
 webcpp.lane http
   : http_methods http_long_body http_no_content_type http_two_units
+    http_content_type_of_target
   : wasip2 wasip3 ;
 
 # The entry point refuses a translation unit that defines neither target's

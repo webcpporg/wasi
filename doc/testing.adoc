@@ -103,6 +103,10 @@ guarantee of <<wasi-guarantees>> names the tests that hold it:
 | A served component of two translation units that both include the entry
   point, which links and answers.
 
+| `http_content_type_of_target`
+| A served component whose content type views the target, which must arrive
+  as the target reads, on wasip2 and on wasip3.
+
 | `neither_target_refused`, `both_targets_refused`
 | A translation unit that defines neither version's macro, and one that
   defines both, each compiled and passing only on the guard's own error, on
@@ -113,7 +117,7 @@ Beside them, `test/Jamfile` compiles each of the {n-headers} public headers
 alone, as the only include of its translation unit, so that a header that
 leans on an include it does not make fails, naming it: the entry point and
 `<webcpp/wasi.hpp>` on wasip2 and wasip3, with the bindings and the macro of
-each, and the response natively too. The four served components run in the
+each, and the response natively too. The five served components run in the
 lane `http` of `test/Jamfile`. `example/Jamfile` serves, in a lane `http`
 of its own, the complete example and the component of
 <<wasi-boost-json-component>>, and runs the command of

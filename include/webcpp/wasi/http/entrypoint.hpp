@@ -49,8 +49,9 @@ namespace webcpp::wasi::http {
  @param target The request target, its path and query, such as
  `"/v1/greeting?name=ana"`, or `"/"` when the request carried none.
  @return The response the handler sends.
- @note Both parameters view the request, and are valid until the main
- returns: copy what it keeps.
+ @note Both parameters view the request, which the handler frees once it
+ has written the response: the response's content type may view them, and
+ the main copies what it keeps beyond the request.
  @see "Your main", in the guide.
 */
 [[nodiscard]] response http_main(std::string_view method, std::string_view target);
@@ -262,7 +263,11 @@ inline void resolve_trailers(
 
 /**
  Handles one request on wasip2: reads the method and the target, asks the program's
- main for the answer, and writes it back.
+ main for the answer, writes it back, and only then frees the request.
+
+ @note The request outlives the response's last read, so a content type that
+ views the method or the target is still valid when it is sent
+ (doc: #wasi-invariant-3).
 */
 inline void handle(exports_wasi_http_incoming_handler_own_incoming_request_t request,
                    exports_wasi_http_incoming_handler_own_response_outparam_t out) {
@@ -275,22 +280,55 @@ inline void handle(exports_wasi_http_incoming_handler_own_incoming_request_t req
 
     const response reply =
         http_main(method_name(method), has_path ? view_of(path) : std::string_view("/"));
+    respond(out, reply);
 
     wasi_http_types_method_free(&method);
     if (has_path) {
         webcpp_wasi_http_string_free(&path);
     }
     wasi_http_types_incoming_request_drop_own(request);
-    respond(out, reply);
 }
 
 #else  // WEBCPP_WASI_HTTP_P3
 
 /**
- Handles one request on wasip3: reads the method and the target, asks the program's
- main for the answer, returns the response and then streams its body.
+ Sends the answer: returns the response, with its status and headers, from
+ the handler, then streams its body and resolves its trailers.
+*/
+inline void respond(const response& answer) {
+    wasi_http_types_stream_u8_writer_t body_writer{};
+    wasi_http_types_stream_u8_t contents = wasi_http_types_stream_u8_new(&body_writer);
+    wasi_http_types_future_result_option_own_trailers_error_code_writer_t trailers_writer{};
+    const wasi_http_types_future_result_option_own_trailers_error_code_t trailers =
+        wasi_http_types_future_result_option_own_trailers_error_code_new(&trailers_writer);
+    wasi_http_types_tuple2_own_response_future_result_void_error_code_t made{};
+    wasi_http_types_static_response_new(headers_of(answer), &contents, trailers, &made);
+    // Drops the future of whether the host sent the response, unread: the guest
+    // could change nothing about a response already sent.
+    wasi_http_types_future_result_void_error_code_drop_readable(made.f1);
+    // Sets the status; the result is not read, because set-status-code fails
+    // only outside 100-599, where no status a main answers should be.
+    static_cast<void>(wasi_http_types_method_response_set_status_code(
+        wasi_http_types_borrow_response(made.f0), static_cast<uint16_t>(answer.status)));
 
- @note The handler is lifted asynchronously and always ends with EXIT.
+    exports_wasi_http_handler_result_own_response_error_code_t result{};
+    result.is_err = false;
+    result.val.ok = made.f0;
+    exports_wasi_http_handler_handle_return(result);
+
+    const bool complete = write_all(body_writer, answer.body);
+    wasi_http_types_stream_u8_drop_writable(body_writer);
+    resolve_trailers(trailers_writer, complete);
+}
+
+/**
+ Handles one request on wasip3: reads the method and the target, asks the program's
+ main for the answer, sends it, and only then frees the request.
+
+ @note The request outlives the response's last read, so a content type that
+ views the method or the target is still valid when it is sent
+ (doc: #wasi-invariant-3). The handler is lifted asynchronously and always
+ ends with EXIT.
 */
 inline webcpp_wasi_http_callback_code_t handle(exports_wasi_http_handler_own_request_t request) {
     const wasi_http_types_borrow_request_t borrowed = wasi_http_types_borrow_request(request);
@@ -301,36 +339,13 @@ inline webcpp_wasi_http_callback_code_t handle(exports_wasi_http_handler_own_req
 
     const response reply =
         http_main(method_name(method), has_path ? view_of(path) : std::string_view("/"));
+    respond(reply);
 
     wasi_http_types_method_free(&method);
     if (has_path) {
         webcpp_wasi_http_string_free(&path);
     }
     wasi_http_types_request_drop_own(request);
-
-    wasi_http_types_stream_u8_writer_t body_writer{};
-    wasi_http_types_stream_u8_t contents = wasi_http_types_stream_u8_new(&body_writer);
-    wasi_http_types_future_result_option_own_trailers_error_code_writer_t trailers_writer{};
-    const wasi_http_types_future_result_option_own_trailers_error_code_t trailers =
-        wasi_http_types_future_result_option_own_trailers_error_code_new(&trailers_writer);
-    wasi_http_types_tuple2_own_response_future_result_void_error_code_t made{};
-    wasi_http_types_static_response_new(headers_of(reply), &contents, trailers, &made);
-    // Drops the future of whether the host sent the response, unread: the guest
-    // could change nothing about a response already sent.
-    wasi_http_types_future_result_void_error_code_drop_readable(made.f1);
-    // Sets the status; the result is not read, because set-status-code fails
-    // only outside 100-599, where no status a main answers should be.
-    static_cast<void>(wasi_http_types_method_response_set_status_code(
-        wasi_http_types_borrow_response(made.f0), static_cast<uint16_t>(reply.status)));
-
-    exports_wasi_http_handler_result_own_response_error_code_t result{};
-    result.is_err = false;
-    result.val.ok = made.f0;
-    exports_wasi_http_handler_handle_return(result);
-
-    const bool complete = write_all(body_writer, reply.body);
-    wasi_http_types_stream_u8_drop_writable(body_writer);
-    resolve_trailers(trailers_writer, complete);
     return WEBCPP_WASI_HTTP_CALLBACK_CODE_EXIT;
 }
 

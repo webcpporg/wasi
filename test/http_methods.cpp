@@ -23,8 +23,8 @@ namespace {
 /**
  The content type that names each method the requests send.
 
- Tip: literals, since the method the main receives points into the request,
- which the handler frees once the main has returned.
+ Tip: literals, since the handler sends the content type after the main has
+ returned, when a string the main built would be gone.
 */
 constexpr auto content_types = std::to_array<std::pair<std::string_view, std::string_view>>({
     {"GET", "text/plain; method=GET"},

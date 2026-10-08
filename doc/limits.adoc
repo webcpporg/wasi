@@ -23,7 +23,7 @@ things do allocate, each through its language's default:
 * *The request's strings.* The target, and an extension method's name, are
   copied into the component's memory as the host hands them over, through
   the `cabi_realloc` the bindings define, which calls wasi-libc's `realloc`.
-  The handler frees them once the main has returned.
+  The handler frees them once it has written the response.
 * *The response's body,* a `std::string`, which allocates through
   `std::allocator` once it outgrows the 10 characters it holds in itself on
   wasm32.

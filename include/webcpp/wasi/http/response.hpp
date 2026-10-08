@@ -42,9 +42,12 @@ struct response {
     /**
      The value of the `content-type` header, which is sent only when it is not empty.
 
-     @note Give it a string literal, such as `"application/json"`, so that it
-     outlives the main: a view costs no allocation, where a std::string of 16
-     characters exceeds the small-string buffer of wasm32's libc++.
+     @note It is read after the main has returned, so it views what outlives
+     the main: a string literal, such as `"application/json"`, or the method
+     or the target the main was given, which the handler frees only once the
+     response is written; never a string of the main's own. A view costs no
+     allocation, where a std::string of 16 characters exceeds the small-string
+     buffer of wasm32's libc++.
     */
     std::string_view content_type{};
     /**

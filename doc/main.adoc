@@ -39,9 +39,14 @@ each request, and sends what it returns.
   exports, so a program writes it once, in one source file. Other
   translation units of the program may include the header: it holds only
   inline functions and macros (<<wasi-invariant-2,guarantee 2>>).
-* *The parameters view the request.* They are valid until the main returns,
-  and the request is freed after that: the main copies what it keeps
+* *The parameters view the request.* The handler frees the request once it
+  has written the response, so the response's content type may view them;
+  the main copies what it keeps beyond the request
   (<<wasi-invariant-3,guarantee 3>>).
+* *What the response views outlives the main.* The content type is a view
+  the handler reads after the main has returned: a string literal, or a view
+  of the method or the target, never of a string of the main's own, which is
+  gone by then. The body is a `std::string`, a copy.
 * *The main's body is inside a function of `webcpp::wasi::http`.* It names
   the program's own code with its full namespace, or with a namespace alias
   declared at the top of the body, so that no name of wasi's hides it.

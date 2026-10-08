@@ -164,8 +164,9 @@ world exports. Write the pair once in the program, in one `.cpp`.
 | `method` | the method, as `"GET"`, `"POST"`, ...; an extension method as it was sent |
 | `target` | the request target, path and query, as `"/v1/greeting?name=ana"`; `"/"` when the request carried none |
 
-Both are views into the request, valid until your main returns: copy what you
-keep. To split the target, parse it with a URL library, Boost.URL's
+Both are views into the request, which the handler frees once it has written
+the response: the response's content type may view them, and you copy what
+you keep beyond the request. To split the target, parse it with a URL library, Boost.URL's
 `parse_origin_form` for example.
 
 The main's body is inside a function of `namespace webcpp::wasi::http`: name
@@ -188,7 +189,7 @@ struct of three members:
 | Member | Type | What it holds |
 | --- | --- | --- |
 | `status` | `unsigned`, 200 by default | the status, sent as it is; keep it within 100 to 599 |
-| `content_type` | `std::string_view`, empty by default | the `content-type` header, sent only when not empty; give it a literal, like `"application/json"`, so that it outlives the main |
+| `content_type` | `std::string_view`, empty by default | the `content-type` header, sent only when not empty; read after your main returns, so it views a literal, like `"application/json"`, or the method or the target, never a string of your main's own |
 | `body` | `std::string`, empty by default | the body, sent whole, however long |
 
 No other header is sent.
@@ -244,9 +245,9 @@ host (wasmtime serve)
   └─ calls the exported handler            exports_wasi_http_incoming_handler_handle
        ├─ reads the method and the target
        ├─ calls your main                  http_main(method, target) -> response
-       ├─ frees the request
        ├─ sends the status and the content-type
-       └─ writes the body, every byte      wasip2: chunks of 4096; wasip3: until the stream took all
+       ├─ writes the body, every byte      wasip2: chunks of 4096; wasip3: until the stream took all
+       └─ frees the request
 ```
 
 A failure the host reports before the response is sent answers an internal

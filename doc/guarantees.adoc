@@ -7,7 +7,8 @@
 [#wasi-guarantees]
 == Guarantees
 
-What wasi promises whatever its program does, and what holds each promise: a
+What wasi promises whatever its program does within the rules of its main
+(<<wasi-main-rules>>), and what holds each promise: a
 test of wasi's, which fails when the promise breaks, or review, where no
 test can make the host misbehave on demand. A guarantee keeps its number, and
 the anchor named after it, so a comment of the code or of a test cites it by
@@ -32,10 +33,12 @@ include it, and the program writes the pair of macros once. _Held by_
 entry point, which links and answers.
 . [[wasi-invariant-3]]*Nothing written back points into freed memory.* The
 handler frees the method and the target, and drops the request, only after
-the main has returned; the response owns its body, and its content type is
-meant for a literal. _Held by review_, with two tests beside it: `response`
-checks that the body is a copy, and `http_methods` echoes each target
-through the main.
+the response is written, so a content type that views the method or the
+target is still valid when it is sent. The response owns its body, a copy of
+what the main built it from, so no body views the request. _Held by_
+`http_content_type_of_target`, whose content type views the target, on wasip2
+and on wasip3, which fails when the target is freed before the content type
+is read; and by `response`, which checks that the body is a copy.
 . [[wasi-invariant-4]]*Every byte of the body is written.* On wasip2 in
 chunks of at most 4096 bytes, the most `blocking-write-and-flush` takes; on
 wasip3 by writing until the stream has taken every byte. _Held by_
