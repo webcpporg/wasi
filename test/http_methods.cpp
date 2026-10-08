@@ -8,7 +8,8 @@
 // an extension, and that the target, its path and its query, reaches it as it
 // was sent. The answer names the method in its content type, which an answer
 // to HEAD carries without a body, and echoes the method and the target in its
-// body.
+// body. CONNECT is left out on purpose: Python's http.client, which sends the
+// requests, cannot send it to an origin server.
 
 #include <webcpp/wasi/http/entrypoint.hpp>
 

@@ -19,7 +19,16 @@
 
 namespace webcpp::wasi::http {
 
+/**
+ What a main returns: the status, the content type and the body of its answer.
+
+ Tip: an aggregate whose every member has a default, so a designated
+ initializer names only what differs: `{.status = 404}`.
+*/
 struct response {
+    /**
+     The status, 200 unless set; sent as it is, so keep it within 100 to 599.
+    */
     unsigned status = 200;
     /**
      The content-type header, sent only when not empty.
@@ -28,6 +37,9 @@ struct response {
      of 16 characters exceeds the small-string buffer of wasm32's libc++.
     */
     std::string_view content_type{};
+    /**
+     The body, sent whole, however long.
+    */
     std::string body{};
 };
 

@@ -99,7 +99,7 @@ transcript that webcpp's test of the example compares:
 
 <!-- include::example/http_hello.expected[] -->
 ```
-$ curl -i -X GET http://localhost:8080/v1/greeting?name=ana
+$ curl -i -X GET 'http://localhost:8080/v1/greeting?name=ana'
 HTTP/1.1 200 OK
 content-type: text/plain
 
