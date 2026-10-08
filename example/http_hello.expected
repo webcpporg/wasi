@@ -1,0 +1,11 @@
+$ curl -i -X GET http://localhost:8080/v1/greeting?name=ana
+HTTP/1.1 200 OK
+content-type: text/plain
+
+hello from /v1/greeting?name=ana
+
+$ curl -i -X POST http://localhost:8080/x
+HTTP/1.1 405 Method Not Allowed
+content-type: text/plain
+
+only GET

@@ -1,0 +1,30 @@
+# Copyright (c) 2026 WebCpp.org
+#
+# Distributed under the Boost Software License, Version 1.0. (See
+# accompanying file LICENSE_1_0.txt or copy at
+# https://www.boost.org/LICENSE_1_0.txt)
+#
+# wasi, header-only helpers for C++ built as WASI components. A program that
+# exports the HTTP handler and nothing else uses /webcpp/wasi//http, which
+# adds the headers, the bindings of the standard world of its target and the
+# macro of that target; one with a world of its own uses /webcpp/wasi//wasi
+# and declares its own webcpp.wit-bindings, renamed webcpp_wasi_http.
+
+project /webcpp/wasi ;
+
+import webcpp ;
+
+alias wasi : : : : <include>include <library>/boost//headers ;
+
+# The standard world of each version, which exports the HTTP handler alone,
+# with the names <webcpp/wasi/http/entrypoint.hpp> uses.
+webcpp.wit-bindings http-bindings-p2 : wit/http-p2.wit : http : webcpp_wasi_http : p2 ;
+webcpp.wit-bindings http-bindings-p3 : wit/http-p3.wit : http : webcpp_wasi_http : p3
+  : --async "wasi:http/handler@0.3.0#handle" ;
+
+# The bindings of the target a program is built for, and nothing natively.
+alias http-bindings : http-bindings-p2 http-bindings-p3 ;
+
+alias http : : : : <library>wasi <library>http-bindings
+  <toolset>clang-wasip2:<define>WEBCPP_WASI_HTTP_P2
+  <toolset>clang-wasip3:<define>WEBCPP_WASI_HTTP_P3 ;

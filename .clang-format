@@ -1,0 +1,7 @@
+---
+# The superproject's style, and the two macros a program writes its main
+# between, which open and close a function's body: clang-format indents what
+# lies between them as it indents a body.
+BasedOnStyle: InheritParentConfig
+MacroBlockBegin: "^WEBCPP_WASI_HTTP_MAIN_BEGIN$"
+MacroBlockEnd: "^WEBCPP_WASI_HTTP_MAIN_END$"

@@ -1,0 +1,19 @@
+# Copyright (c) 2026 WebCpp.org
+#
+# Distributed under the Boost Software License, Version 1.0. (See
+# accompanying file LICENSE_1_0.txt or copy at
+# https://www.boost.org/LICENSE_1_0.txt)
+
+project : requirements <library>/webcpp/wasi//wasi ;
+
+import webcpp ;
+
+webcpp.targets wasip2 wasip3 ;
+
+# Each public header compiles alone: the entry point, and the convenience
+# header that includes it, only on wasip2 and wasip3, with the bindings and
+# the macro of each; the response, which includes nothing of the component
+# ABI, natively too.
+webcpp.headers-alone wasi : ../include : wasi.hpp wasi/http/entrypoint.hpp
+  : <library>/webcpp/wasi//http ;
+webcpp.headers-alone wasi : ../include : wasi/http/response.hpp : : native wasip2 wasip3 ;
