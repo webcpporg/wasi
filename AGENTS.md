@@ -39,7 +39,10 @@ holds only what is specific to wasi.
 - **Exceptions.** The headers throw, try and catch nothing. Every program is
   built without exceptions on wasip2 and with them on wasip3, as the
   superproject's Jamroot builds any; wasmtime serves both with no flag
-  beyond those of `webcpp.serve`.
+  beyond those of `webcpp.serve`. An exception that escapes the main on
+  wasip3 traps the instance, and wasmtime 47 answers its own HTML 500: the
+  page and the main's Doc Comment say so, and whether the handler should
+  catch it is the owner's decision, not a change to make in passing.
 - **The tools,** each looked for when a target needs it, and the build stops
   naming it and every place it looked when it is not there: wit-bindgen
   0.62.0 (`-sWIT_BINDGEN=<path>`, else `.local/wit-bindgen/wit-bindgen`,
