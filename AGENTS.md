@@ -69,8 +69,9 @@ holds only what is specific to wasi.
   libs/wasi/example` runs the rest, and `b2 -a toolset=clang-wasip2
   testing.launcher=wasmtime libs/wasi/test//http libs/wasi/example//http`
   the served ones; `toolset=clang-wasip3` likewise. A new served program
-  joins its Jamfile's lane; one left out would run in the ordinary lanes
-  instead. The CI runs each lane on each target, as `Own lane (wasi, http,
+  joins its Jamfile's lane on both targets: `b2 declared-lanes`, and the
+  CI's plan with it, stops naming one that no lane runs on a target it is
+  served on. The CI runs each lane on each target, as `Own lane (wasi, http,
   libs/wasi/test, wasip2)`, and the test matrix shows it as the column
   `wasip2.wasi.test.http`.
 - **The README's example is a test.** Its `main.cpp` and its answers are
