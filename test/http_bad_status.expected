@@ -1,0 +1,87 @@
+$ curl -i -X GET http://localhost:8080/0
+HTTP/1.1 500 Internal Server Error
+content-length: 205
+content-type: text/html; charset=UTF-8
+
+<!doctype html>
+<html>
+<head>
+    <title>500 Internal Server Error</title>
+</head>
+<body>
+    <center>
+        <h1>500 Internal Server Error</h1>
+        <hr>
+        wasmtime
+    </center>
+</body>
+</html>
+
+$ curl -i -X GET http://localhost:8080/99
+HTTP/1.1 500 Internal Server Error
+content-length: 205
+content-type: text/html; charset=UTF-8
+
+<!doctype html>
+<html>
+<head>
+    <title>500 Internal Server Error</title>
+</head>
+<body>
+    <center>
+        <h1>500 Internal Server Error</h1>
+        <hr>
+        wasmtime
+    </center>
+</body>
+</html>
+
+$ curl -i -X GET http://localhost:8080/600
+HTTP/1.1 500 Internal Server Error
+content-length: 205
+content-type: text/html; charset=UTF-8
+
+<!doctype html>
+<html>
+<head>
+    <title>500 Internal Server Error</title>
+</head>
+<body>
+    <center>
+        <h1>500 Internal Server Error</h1>
+        <hr>
+        wasmtime
+    </center>
+</body>
+</html>
+
+$ curl -i -X GET http://localhost:8080/65736
+HTTP/1.1 500 Internal Server Error
+content-length: 205
+content-type: text/html; charset=UTF-8
+
+<!doctype html>
+<html>
+<head>
+    <title>500 Internal Server Error</title>
+</head>
+<body>
+    <center>
+        <h1>500 Internal Server Error</h1>
+        <hr>
+        wasmtime
+    </center>
+</body>
+</html>
+
+$ curl -i -X GET http://localhost:8080/599
+HTTP/1.1 599 <none>
+content-type: text/plain
+
+the status 599
+
+$ curl -i -X GET http://localhost:8080/200
+HTTP/1.1 200 OK
+content-type: text/plain
+
+the status 200

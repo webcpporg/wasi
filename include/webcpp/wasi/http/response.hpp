@@ -35,8 +35,10 @@ struct response {
     /**
      The status code, 200 unless set.
 
-     It is sent as it is: keep it within 100 to 599, the codes wasi:http
-     accepts.
+     It is sent as it is when it lies within 100 to 599, the five classes of
+     HTTP. Outside them the handler sends no response of the main's and
+     answers an internal error instead, which wasmtime 47 sends as its own
+     `500 Internal Server Error`.
     */
     unsigned status = 200;
     /**

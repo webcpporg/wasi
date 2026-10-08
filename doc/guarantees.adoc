@@ -67,3 +67,9 @@ only generated names it uses are those of the standard interfaces and those
 `--rename-world webcpp_wasi_http` makes. _Held by_ the lint's rule on the
 banned word, which refuses the name of the program wasi was first written
 for in every file, file name and commit, _and by review_.
+. [[wasi-invariant-9]]*A response that cannot be sent as the main wrote it is
+refused, not altered.* A status outside 100 to 599 is not sent: the handler
+answers an internal error instead, before anything is committed, on both
+versions. _Held by_ `http_bad_status`, whose statuses 0, 99, 600 and 65736
+answer wasmtime's `500 Internal Server Error`, and 599 is sent as it is, on
+wasip2 and on wasip3.
