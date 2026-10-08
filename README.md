@@ -40,8 +40,9 @@ them on wasip3, where an exception that escapes your main traps the instance
 ## A complete example
 
 A component that greets whoever calls it, built by hand with wasi-sdk. These
-are the exact files and commands, which webcpp's test `by_hand` runs on every
-build, with wasi-sdk 34, wit-bindgen 0.62.0 and wasmtime 47.0.3
+are the exact files and commands, which webcpp's test `by_hand` runs in the
+lane `http` of `example/`, on wasip2 and on wasip3, with wasi-sdk 34,
+wit-bindgen 0.62.0 and wasmtime 47.0.3
 ([example/by_hand/build.sh](example/by_hand/build.sh)).
 
 `wit/world.wit`, the world your component exports (name it as you like):
