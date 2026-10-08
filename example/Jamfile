@@ -1,0 +1,13 @@
+# Copyright (c) 2026 WebCpp.org
+#
+# Distributed under the Boost Software License, Version 1.0. (See
+# accompanying file LICENSE_1_0.txt or copy at
+# https://www.boost.org/LICENSE_1_0.txt)
+
+import webcpp ;
+
+webcpp.targets wasip2 wasip3 ;
+
+# The README's example: a component that greets whoever calls it, served by
+# wasmtime, whose answers are the README's.
+webcpp.serve http_hello.cpp : <library>/webcpp/wasi//http ;

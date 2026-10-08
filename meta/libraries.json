@@ -1,0 +1,10 @@
+{
+    "key": "wasi",
+    "name": "wasi",
+    "authors": ["Rodrigo"],
+    "description": "Header-only helpers for C++ built as WebAssembly components: the HTTP handler a component exports on wasip2 and wasip3, and the macros a program writes its main between.",
+    "category": ["System"],
+    "maintainers": ["Rodrigo <pinhopro@proton.me>"],
+    "cxxstd": "20",
+    "port-of": null
+}

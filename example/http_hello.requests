@@ -1,0 +1,2 @@
+GET /v1/greeting?name=ana
+POST /x
