@@ -167,7 +167,8 @@ does the same for wasm32-wasip3, with exceptions.
 Runs the lanes `http` of the tests and of the examples: builds the
 {n-served-wasip2} components for wasm32-wasip2 and has wasmtime serve each.
 `toolset=clang-wasip3` does the same for wasm32-wasip3: {n-served-wasip3}
-components.
+components. Without a WASI toolset, the request stops, naming the toolsets
+to give, rather than build nothing.
 
 `b2 libs/wasi/test libs/wasi/example`::
 Builds and runs, natively, the {n-tests-native} tests that need no WASI
@@ -219,16 +220,17 @@ b2 -a --dump-tests --out-xml=<lane>.xml toolset=<toolset> \
     libs/wasi/test libs/wasi/example
 ----
 
-Each lane `http` runs the same way on wasip2 and on wasip3, with the
-target's toolset, and records its run under a name of its own, made of the
-target, the library, the directory and the lane: `wasip2.wasi.test.http`
-for the served tests on wasip2, `wasip3.wasi.example.http` for the served
-examples on wasip3:
+The lanes `http` of the tests and of the examples run together, the same
+way, on wasip2 and on wasip3, with the target's toolset, and record their
+run under a name of its own, made of the target, the library and the lane:
+`wasip2.wasi.http` for the served tests and examples on wasip2,
+`wasip3.wasi.http` on wasip3:
 
 [source,bash]
 ----
-b2 -a --dump-tests --out-xml=wasip2.wasi.test.http.xml \
-    toolset=clang-wasip2 testing.launcher=wasmtime libs/wasi/test//http
+b2 -a --dump-tests --out-xml=wasip2.wasi.http.xml \
+    toolset=clang-wasip2 testing.launcher=wasmtime \
+    libs/wasi/example//http libs/wasi/test//http
 ----
 
 webcpp's `tools/report/report.py` merges the files of every lane into a

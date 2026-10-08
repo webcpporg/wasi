@@ -74,9 +74,9 @@ holds only what is specific to wasi.
   the served ones; `toolset=clang-wasip3` likewise. A new served program
   joins its Jamfile's lane on both targets: `b2 declared-lanes`, and the
   CI's plan with it, stops naming one that no lane runs on a target it is
-  served on. The CI runs each lane on each target, as `Own lane (wasi, http,
-  libs/wasi/test, wasip2)`, and the test matrix shows it as the column
-  `wasip2.wasi.test.http`.
+  served on. The CI runs the lanes `http` of both directories as one job on
+  each target, `Own lane (wasi, http, wasip2)`, and the test matrix shows it
+  as the column `wasip2.wasi.http`.
 - **The README's example is a test.** Its `main.cpp` and its answers are
   copies of `example/http_hello.cpp` (the region `tag::main`) and
   `example/http_hello.expected`, which the README opens with
