@@ -38,8 +38,8 @@ The test `by_hand` runs them in its lane on wasip3, and wasmtime serves what
 they build with the flags above and no other. With exceptions on, an
 exception that escapes the main traps the instance: the handler catches
 nothing, and wasmtime 47 answers the client with its own
-`500 Internal Server Error` (<<wasi-main-rules>>). Built with `-fno-exceptions` in
-place of the exception flags, on the compile and on the link, the component
+`500 Internal Server Error` (<<wasi-main-rules>>). Built with
+`-fno-exceptions` in place of the exception flags, on the compile and on the link, the component
 answers the same; webcpp measured that once, by hand, and its lanes build
 wasip3 with exceptions.
 

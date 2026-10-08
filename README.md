@@ -169,8 +169,8 @@ world exports. Write the pair once in the program, in one `.cpp`.
 
 Both are views into the request, which the handler frees once it has written
 the response: the response's content type may view them, and you copy what
-you keep beyond the request. To split the target, parse it with a URL library, Boost.URL's
-`parse_origin_form` for example.
+you keep beyond the request. To split the target, parse it with a URL
+library, Boost.URL's `parse_origin_form` for example.
 
 The handler catches nothing. On wasip3, where webcpp builds with exceptions,
 an exception that escapes your main traps the instance: wasmtime 47 prints
