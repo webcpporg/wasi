@@ -82,7 +82,8 @@ repository's:
 
 <!-- include::example/by_hand/build.sh[tag=p2] -->
 ```sh
-"$WIT_BINDGEN" c --world service --rename-world webcpp_wasi_http --out-dir gen wit
+"$WIT_BINDGEN" c --world service --rename-world webcpp_wasi_http \
+    --out-dir gen wit
 
 "$WASI_SDK/bin/clang" --target=wasm32-wasip2 \
     -c gen/webcpp_wasi_http.c -o gen/webcpp_wasi_http.o -Igen
@@ -206,9 +207,12 @@ itself:
 | `-DWEBCPP_WASI_HTTP_P2` or `-DWEBCPP_WASI_HTTP_P3`, exactly one | chooses the target; the header refuses to compile with neither or both |
 | the bindings generated with `--rename-world webcpp_wasi_http` | the header includes `webcpp_wasi_http.h` and uses the names wit-bindgen gives the world, `webcpp_wasi_http_string_t` and the like; renaming makes them the same in every project, whatever its world is called |
 | `webcpp_wasi_http.c` compiled as C for the target, and `webcpp_wasi_http_component_type.o`, linked | the glue that calls your handler, and the world's type information for the component linker |
-| the bindings' directory on the include path | for `webcpp_wasi_http.h` |
-| `-mexec-model=reactor` on the link | the component exports a handler and has no C `main` |
-| `-S cli` on `wasmtime serve` | wasi-libc imports parts of `wasi:cli` |
+| the directory of the bindings on the include path | for `webcpp_wasi_http.h` |
+| `-mexec-model=reactor` on the link | the program is a reactor: it exports a handler and has no C `main`; wasmtime 47 also serves it linked as a command, but webcpp builds and tests reactors |
+
+The host has its part too: `wasmtime serve` runs a component of wasi with
+`-S cli`, since wasi-libc imports parts of `wasi:cli`, and on wasip3 with
+`-S cli,p3 -W component-model-async`.
 
 ## wasip3
 

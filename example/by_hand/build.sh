@@ -15,9 +15,9 @@
 #
 # with WASI_SDK, wasi-sdk's directory, WIT_BINDGEN, the wit-bindgen program,
 # and WASI_WIT, the wit/deps directory of the wasi:http WIT of the version, in
-# its environment, and serves what it builds. It works in <component.wasm>.work,
-# a directory laid out as the page's: main.cpp, the world in wit/world.wit and
-# the WIT linked at wit/deps.
+# its environment, and serves what it builds. It works in
+# <component.wasm>.work, a directory laid out as the page's: main.cpp, the
+# world in wit/world.wit and the WIT linked at wit/deps.
 set -e
 
 version=$1
@@ -39,7 +39,8 @@ cd "$work"
 case $version in
 p2)
 # tag::p2[]
-"$WIT_BINDGEN" c --world service --rename-world webcpp_wasi_http --out-dir gen wit
+"$WIT_BINDGEN" c --world service --rename-world webcpp_wasi_http \
+    --out-dir gen wit
 
 "$WASI_SDK/bin/clang" --target=wasm32-wasip2 \
     -c gen/webcpp_wasi_http.c -o gen/webcpp_wasi_http.o -Igen
