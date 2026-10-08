@@ -28,3 +28,10 @@ webcpp.example boost_json_command.cpp : <library>/webcpp//boost_json ;
 webcpp.serve boost_json_http.cpp
   : <library>/webcpp/wasi//http <library>/webcpp//boost_json ;
 # end::boost[]
+
+# The served examples run in a lane of their own, http, on wasip2 and on
+# wasip3, as the served tests do; the command runs in the ordinary lanes.
+# tag::lane[]
+webcpp.lane http : http_hello by_hand boost_json_http
+  : wasip2 wasip3 ;
+# end::lane[]

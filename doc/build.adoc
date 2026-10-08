@@ -116,8 +116,8 @@ component, which answers the requests of the complete example as its
 transcript shows.
 
 These are the commands of `example/by_hand/build.sh`, which the test
-`by_hand` of wasi's examples runs on the wasip2 lane, with the wasi-sdk,
-wit-bindgen and WIT the build found, before it serves the component and
-compares its answers with the complete example's transcript
+`by_hand` of wasi's examples runs in their lane `http` on wasip2, with the
+wasi-sdk, wit-bindgen and WIT the build found, before it serves the
+component and compares its answers with the complete example's transcript
 (<<wasi-testing-component>>). A change to them that breaks the build or the
 answers fails that lane.

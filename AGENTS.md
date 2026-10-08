@@ -61,6 +61,18 @@ holds only what is specific to wasi.
   before the bare origin for `OPTIONS *`; it leaves out the headers wasmtime
   adds to every response, `date` and `transfer-encoding`.
   `tools/component/serve.py` in the superproject holds the format.
+- **The served programs run in own lanes.** Every program declared with
+  `webcpp.serve` or `webcpp.serve-script`, in `test/` and in `example/`, is
+  named by the lane `http` of its Jamfile, `webcpp.lane http : ... : wasip2
+  wasip3 ;`, which leaves it out of the ordinary lanes: `b2 -a
+  toolset=clang-wasip2 testing.launcher=wasmtime libs/wasi/test
+  libs/wasi/example` runs the rest, and `b2 -a toolset=clang-wasip2
+  testing.launcher=wasmtime libs/wasi/test//http libs/wasi/example//http`
+  the served ones; `toolset=clang-wasip3` likewise. A new served program
+  joins its Jamfile's lane; one left out would run in the ordinary lanes
+  instead. The CI runs each lane on each target, as `Own lane (wasi, http,
+  libs/wasi/test, wasip2)`, and the test matrix shows it as the column
+  `wasip2.wasi.test.http`.
 - **The README's example is a test.** Its `main.cpp` and its answers are
   copies of `example/http_hello.cpp` (the region `tag::main`) and
   `example/http_hello.expected`, which the README opens with
@@ -69,10 +81,10 @@ holds only what is specific to wasi.
   hand are copies too, of `example/by_hand/p2/wit/world.wit` and of the
   region `p2` of `example/by_hand/build.sh`; the page shows those and their
   wasip3 counterparts, `p3/wit/world.wit` and the region `p3`. The example's
-  test `by_hand` (`webcpp.serve-script`) runs that script on each WASI lane,
-  with the wasi-sdk, wit-bindgen and WIT b2 found, and serves what it builds
-  against `http_hello`'s transcript, so a command that stops working fails
-  the lane.
+  test `by_hand` (`webcpp.serve-script`) runs that script in the lane `http`
+  on wasip2 and on wasip3, with the wasi-sdk, wit-bindgen and WIT b2 found,
+  and serves what it builds against `http_hello`'s transcript, so a command
+  that stops working fails the lane.
 - **The page.** `doc/wasi.adoc` and its chapters, built by `b2 libs/wasi/doc`.
   Its chapter "Building for WASI with Boost" shows the superproject's own
   configuration, included by tag through `{webcpp-root}`: the regions

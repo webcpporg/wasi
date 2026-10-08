@@ -55,6 +55,21 @@ transcript holds on every machine and every lane. Two requests are separated
 by an empty line. `tools/component/serve.py`, in the superproject, writes
 the transcript and holds its format.
 
+A served test runs in a lane of its own, which `webcpp.lane` declares with
+the targets it runs on, as the complete example's is:
+
+[listing]
+----
+include::{examples}/Jamfile[tag=lane,indent=0]
+----
+
+The lane is the explicit target `http` of its Jamfile, and the tests it names
+become explicit too: `b2` on the test and example directories leaves them
+out, and `b2 libs/wasi/example//http toolset=clang-wasip2
+testing.launcher=wasmtime` runs them. The continuous integration runs the
+lane once per target it names, as it runs that target's lane, and its tests
+reach the test matrix in a column of its own.
+
 [#wasi-testing-library]
 === How wasi is tested
 
@@ -98,10 +113,12 @@ Beside them, `test/Jamfile` compiles each of the {n-headers} public headers
 alone, as the only include of its translation unit, so that a header that
 leans on an include it does not make fails, naming it: the entry point and
 `<webcpp/wasi.hpp>` on wasip2 and wasip3, with the bindings and the macro of
-each, and the response natively too. `example/Jamfile` serves the complete
-example and the component of <<wasi-boost-json-component>>, and runs the
-command of <<wasi-boost-json-command>>, comparing what it prints with the
-`.expected` beside it. Its test `by_hand` runs the commands of
+each, and the response natively too. The four served components run in the
+lane `http` of `test/Jamfile`. `example/Jamfile` serves, in a lane `http`
+of its own, the complete example and the component of
+<<wasi-boost-json-component>>, and runs the command of
+<<wasi-boost-json-command>>, comparing what it prints with the `.expected`
+beside it. Its test `by_hand`, in the same lane, runs the commands of
 <<wasi-build-by-hand>> and <<wasi-wasip3>>, `example/by_hand/build.sh`,
 and serves the component they build, which must answer as the complete
 example does. `webcpp.serve-script` declares it, with the script and the
@@ -121,14 +138,21 @@ compiler, `WIT_BINDGEN`, and `WASI_WIT`, the WIT of the lane's version.
 
 wasi's programs are built for the targets their Jamfiles declare: every
 component, and the command, on wasip2 and wasip3; the response, and its
-header alone, natively as well. From the root of a webcpp checkout:
+header alone, natively as well. Two requests run the {n-tests-wasip2} tests
+of wasip2, and two the {n-tests-wasip3} of wasip3: the served ones in the
+lanes `http`, the others with the test and example directories. From the
+root of a webcpp checkout:
 
 `b2 libs/wasi/test libs/wasi/example toolset=clang-wasip2 testing.launcher=wasmtime`::
-Builds and runs the {n-tests-wasip2} tests for wasm32-wasip2, without
-exceptions, {n-served-wasip2} of them components that wasmtime serves, and
-the command, which wasmtime runs. `toolset=clang-wasip3` does the same for
-wasm32-wasip3, with exceptions: {n-tests-wasip3} tests, {n-served-wasip3} of
-them served.
+Builds and runs, for wasm32-wasip2 and without exceptions, every test that
+is not served, and the command, which wasmtime runs. `toolset=clang-wasip3`
+does the same for wasm32-wasip3, with exceptions.
+
+`b2 libs/wasi/test//http libs/wasi/example//http toolset=clang-wasip2 testing.launcher=wasmtime`::
+Runs the lanes `http` of the tests and of the examples: builds the
+{n-served-wasip2} components for wasm32-wasip2 and has wasmtime serve each.
+`toolset=clang-wasip3` does the same for wasm32-wasip3: {n-served-wasip3}
+components.
 
 `b2 libs/wasi/test libs/wasi/example`::
 Builds and runs, natively, the {n-tests-native} tests that need no WASI
@@ -180,10 +204,23 @@ b2 -a --dump-tests --out-xml=<lane>.xml toolset=<toolset> \
     libs/wasi/test libs/wasi/example
 ----
 
+Each lane `http` runs the same way on wasip2 and on wasip3, with the
+target's toolset, and records its run under a name of its own, made of the
+target, the library, the directory and the lane: `wasip2.wasi.test.http`
+for the served tests on wasip2, `wasip3.wasi.example.http` for the served
+examples on wasip3:
+
+[source,bash]
+----
+b2 -a --dump-tests --out-xml=wasip2.wasi.test.http.xml \
+    toolset=clang-wasip2 testing.launcher=wasmtime libs/wasi/test//http
+----
+
 webcpp's `tools/report/report.py` merges the files of every lane into a
 matrix: a page of the libraries by lanes, and a page of each library's tests
-and examples by lanes, where each cell says whether that program passed in
-that lane, or how it failed, at compile time, at link time or when it ran.
+and examples by lanes, the served ones in the columns of the lanes `http`,
+where each cell says whether that program passed in that lane, or how it
+failed, at compile time, at link time or when it ran.
 With `--out-xml`, b2 exits 0 even when a test fails, so the report is the
 verdict. The matrix is published with the documentation, at
 https://webcpporg.github.io/webcpp/report/.

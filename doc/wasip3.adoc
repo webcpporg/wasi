@@ -34,7 +34,7 @@ wasip3 program (<<wasi-boost-exceptions-wasip3>>):
 include::{examples}/by_hand/build.sh[tag=p3]
 ----
 
-The test `by_hand` runs them on the wasip3 lane, and wasmtime serves what
+The test `by_hand` runs them in its lane on wasip3, and wasmtime serves what
 they build with the flags above and no other. Built with `-fno-exceptions` in
 place of the exception flags, on the compile and on the link, the component
 answers the same; webcpp measured that once, by hand, and its lanes build
