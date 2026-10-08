@@ -65,14 +65,20 @@ holds only what is specific to wasi.
   copies of `example/http_hello.cpp` (the region `tag::main`) and
   `example/http_hello.expected`, which the README opens with
   `<!-- include::... -->` and doc-check compares; a change to either changes
-  the README in the same commit. The hand-written commands of its complete
-  example and of its section on wasip3 were run as written, and are run again
-  when wasi-sdk, wit-bindgen or wasmtime moves.
+  the README in the same commit. Its world and its commands of a build by
+  hand are copies too, of `example/by_hand/p2/wit/world.wit` and of the
+  region `p2` of `example/by_hand/build.sh`; the page shows those and their
+  wasip3 counterparts, `p3/wit/world.wit` and the region `p3`. The example's
+  test `by_hand` (`webcpp.serve-script`) runs that script on each WASI lane,
+  with the wasi-sdk, wit-bindgen and WIT b2 found, and serves what it builds
+  against `http_hello`'s transcript, so a command that stops working fails
+  the lane.
 - **The page.** `doc/wasi.adoc` and its chapters, built by `b2 libs/wasi/doc`.
   Its chapter "Building for WASI with Boost" shows the superproject's own
-  configuration, included by tag through `{webcpp-root}`: the toolsets of
-  `tools/ci/wasi-sdk.jam` and the regions `wasi-os`, `wasi-target`,
-  `wasip2-exceptions` and `wasip3-exceptions` of the Jamroot. doc-check
+  configuration, included by tag through `{webcpp-root}`: the regions
+  `wasi-sdk`, `wasip2` and `wasip3` of `tools/ci/wasi-sdk.jam`, and
+  `wasi-os`, `wasi-target`, `wasip2-exceptions` and `wasip3-exceptions` of
+  the Jamroot. doc-check
   accepts only a tagged region of a file the superproject tracks, so a region
   renamed there fails this page's build. Its examples `boost_json_command`
   and `boost_json_http` link `/webcpp//boost_json`.

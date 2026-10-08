@@ -48,8 +48,8 @@ int main() {
     if (json::value* limits = object->if_contains("limits");
         limits != nullptr && limits->is_object()) {
         limits->get_object()["debug"] = true;
+        std::cout << "limits: " << json::serialize(*limits) << '\n';
     }
-    std::cout << "changed: " << json::serialize(parsed) << '\n';
 
     const json::value broken = json::parse(R"({"name": })", error);
     std::cout << "a broken text: " << error.message() << ", read as " << json::serialize(broken)

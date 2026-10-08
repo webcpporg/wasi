@@ -1,0 +1,15 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+// The world the complete example exports when it is built by hand, for WASI 0.3.
+
+// tag::world[]
+package example:hello;
+
+world service {
+  export wasi:http/handler@0.3.0;
+}
+// end::world[]

@@ -39,11 +39,13 @@ them on wasip3.
 ## A complete example
 
 A component that greets whoever calls it, built by hand with wasi-sdk. These
-are the exact files and commands, run with wasi-sdk 34, wit-bindgen 0.62.0
-and wasmtime 47.0.3.
+are the exact files and commands, which webcpp's test `by_hand` runs on every
+build, with wasi-sdk 34, wit-bindgen 0.62.0 and wasmtime 47.0.3
+([example/by_hand/build.sh](example/by_hand/build.sh)).
 
 `wit/world.wit`, the world your component exports (name it as you like):
 
+<!-- include::example/by_hand/p2/wit/world.wit[tag=world] -->
 ```wit
 package example:hello;
 
@@ -74,16 +76,20 @@ WEBCPP_WASI_HTTP_MAIN_END()
 ```
 
 Generate the bindings, renaming the world to `webcpp_wasi_http`, then compile
-and link a reactor with wasi-sdk's `clang` and `clang++`, where `<wasi>` is
-this repository:
+and link a reactor with wasi-sdk's `clang` and `clang++`, where `WIT_BINDGEN`
+is the wit-bindgen program, `WASI_SDK` wasi-sdk's directory and `WASI` this
+repository's:
 
+<!-- include::example/by_hand/build.sh[tag=p2] -->
 ```sh
-wit-bindgen c --world service --rename-world webcpp_wasi_http --out-dir gen wit
+"$WIT_BINDGEN" c --world service --rename-world webcpp_wasi_http --out-dir gen wit
 
-clang --target=wasm32-wasip2 -c gen/webcpp_wasi_http.c -o gen/webcpp_wasi_http.o -Igen
-clang++ --target=wasm32-wasip2 -std=c++20 -fno-exceptions -mexec-model=reactor \
-    -DWEBCPP_WASI_HTTP_P2 -I<wasi>/include -Igen \
-    main.cpp gen/webcpp_wasi_http.o gen/webcpp_wasi_http_component_type.o -o hello.wasm
+"$WASI_SDK/bin/clang" --target=wasm32-wasip2 \
+    -c gen/webcpp_wasi_http.c -o gen/webcpp_wasi_http.o -Igen
+"$WASI_SDK/bin/clang++" --target=wasm32-wasip2 -std=c++20 -fno-exceptions \
+    -mexec-model=reactor -DWEBCPP_WASI_HTTP_P2 -I"$WASI/include" -Igen \
+    main.cpp gen/webcpp_wasi_http.o gen/webcpp_wasi_http_component_type.o \
+    -o hello.wasm
 ```
 
 Serve it:

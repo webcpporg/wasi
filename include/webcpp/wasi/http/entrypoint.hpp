@@ -351,9 +351,10 @@ inline webcpp_wasi_http_callback_code_t handle(exports_wasi_http_handler_own_req
  expands it, so a program that writes its main between the two macros never
  names it.
 
- @note The names it defines are those wit-bindgen generates for each world:
- the handler of wasi:http/incoming-handler on wasip2, and the handler of
- wasi:http/handler and its callback on wasip3. The component's glue,
+ @note The functions it defines have the names wit-bindgen generates for each
+ world: `exports_wasi_http_incoming_handler_handle` on wasip2, and
+ `exports_wasi_http_handler_handle` with its
+ `exports_wasi_http_handler_handle_callback` on wasip3. The component's glue,
  webcpp_wasi_http.c, calls them by those names.
  @see "How a request flows", in the guide.
 */

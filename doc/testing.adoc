@@ -58,8 +58,8 @@ the transcript and holds its format.
 [#wasi-testing-library]
 === How wasi is tested
 
-wasi's tests are under `test/`, each declared in `test/Jamfile`; the
-guarantees of <<wasi-guarantees>> cite them:
+wasi's tests are under `test/`, each declared in `test/Jamfile`, and each
+guarantee of <<wasi-guarantees>> names the tests that hold it:
 
 [cols="1,3",options="header"]
 |===
@@ -101,7 +101,20 @@ leans on an include it does not make fails, naming it: the entry point and
 each, and the response natively too. `example/Jamfile` serves the complete
 example and the component of <<wasi-boost-json-component>>, and runs the
 command of <<wasi-boost-json-command>>, comparing what it prints with the
-`.expected` beside it.
+`.expected` beside it. Its test `by_hand` runs the commands of
+<<wasi-build-by-hand>> and <<wasi-wasip3>>, `example/by_hand/build.sh`,
+and serves the component they build, which must answer as the complete
+example does. `webcpp.serve-script` declares it, with the script and the
+stem of the requests and the transcript it shares with the complete example:
+
+[listing]
+----
+include::{examples}/Jamfile[tag=by-hand,indent=0]
+----
+
+The script is run as `build.sh <p2|p3> <component>`, with the tools b2 found
+for the lane in its environment: `WASI_SDK`, the directory of the lane's
+compiler, `WIT_BINDGEN`, and `WASI_WIT`, the WIT of the lane's version.
 
 [#wasi-testing-targets]
 === Targets

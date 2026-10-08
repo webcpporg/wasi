@@ -14,10 +14,17 @@ webcpp.targets wasip2 wasip3 ;
 webcpp.serve http_hello.cpp : <library>/webcpp/wasi//http ;
 # end::hello[]
 
+# The complete example built by hand, with the commands the page shows, which
+# by_hand/build.sh runs on each lane: its component answers as http_hello's.
+# tag::by-hand[]
+webcpp.serve-script by_hand : by_hand/build.sh : http_hello ;
+# end::by-hand[]
+
 # Boost on WASI: a command that parses a JSON text and prints what it read,
 # run by wasmtime, and a component that answers JSON, served by it. Each
 # links Boost.JSON's definitions, compiled for its target.
 # tag::boost[]
 webcpp.example boost_json_command.cpp : <library>/webcpp//boost_json ;
-webcpp.serve boost_json_http.cpp : <library>/webcpp/wasi//http <library>/webcpp//boost_json ;
+webcpp.serve boost_json_http.cpp
+  : <library>/webcpp/wasi//http <library>/webcpp//boost_json ;
 # end::boost[]

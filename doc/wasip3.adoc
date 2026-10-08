@@ -15,31 +15,30 @@ differs by the toolset alone, `clang-wasip3`. By hand:
   0.9.0;
 * the bindings are generated with `--async 'wasi:http/handler@0.3.0#handle'`
   beside `--rename-world`;
-* everything is compiled for `--target=wasm32-wasip3`, the bindings' `.c`
-  with `-pthread`, and the program with `-DWEBCPP_WASI_HTTP_P3`;
+* everything is compiled for `--target=wasm32-wasip3`, the `.c` of the
+  bindings with `-pthread`, and the program with `-DWEBCPP_WASI_HTTP_P3`;
 * wasmtime serves it with `-S cli,p3 -W component-model-async`.
 
-From the directory of <<wasi-build-by-hand>>, with the world's `export` line
-changed and `wit/deps/` linked to the 0.3.0 WIT, and with exceptions on, as
-webcpp builds every wasip3 program (<<wasi-boost-exceptions-wasip3>>):
+The world of <<wasi-build-by-hand>> then exports the handler of 0.3.0:
+
+[listing]
+----
+include::{examples}/by_hand/p3/wit/world.wit[tag=world]
+----
+
+and these commands build it, with exceptions on, as webcpp builds every
+wasip3 program (<<wasi-boost-exceptions-wasip3>>):
 
 [source,bash]
 ----
-wit-bindgen c --world service --rename-world webcpp_wasi_http \
-    --async 'wasi:http/handler@0.3.0#handle' --out-dir gen wit
-
-clang --target=wasm32-wasip3 -pthread -c gen/webcpp_wasi_http.c -o gen/webcpp_wasi_http.o -Igen
-clang++ --target=wasm32-wasip3 -std=c++20 -fwasm-exceptions -mllvm -wasm-use-legacy-eh=false \
-    -mexec-model=reactor -DWEBCPP_WASI_HTTP_P3 -I<wasi>/include -Igen \
-    main.cpp gen/webcpp_wasi_http.o gen/webcpp_wasi_http_component_type.o \
-    -fwasm-exceptions -lunwind -o hello.wasm
-
-wasmtime serve -S cli,p3 -W component-model-async --addr 127.0.0.1:8080 hello.wasm
+include::{examples}/by_hand/build.sh[tag=p3]
 ----
 
-wasmtime needs no flag beyond these for a component built with exceptions.
-Built with `-fno-exceptions` in place of the exception flags, on the compile
-and on the link, the component answers the same.
+The test `by_hand` runs them on the wasip3 lane, and wasmtime serves what
+they build with the flags above and no other. Built with `-fno-exceptions` in
+place of the exception flags, on the compile and on the link, the component
+answers the same; webcpp measured that once, by hand, and its lanes build
+wasip3 with exceptions.
 
 The handler of wasip3 is lifted asynchronously, but it never gives its task
 back to the host to wait: it waits for each write inside the task, and always
