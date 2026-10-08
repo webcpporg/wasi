@@ -53,6 +53,10 @@ namespace webcpp::wasi::http {
  @note Both parameters view the request, which the handler frees once it
  has written the response: the response's content type may view them, and
  the main copies what it keeps beyond the request.
+ @note The handler catches nothing. On wasip3, where webcpp builds a program
+ with exceptions, an exception that escapes the main traps the instance:
+ wasmtime 47 prints the trap and answers the client with its own
+ `500 Internal Server Error`. webcpp builds wasip2 without exceptions.
  @see "Your main", in the guide.
 */
 [[nodiscard]] response http_main(std::string_view method, std::string_view target);

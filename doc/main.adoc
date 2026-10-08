@@ -50,6 +50,14 @@ each request, and sends what it returns.
 * *The main's body is inside a function of `webcpp::wasi::http`.* It names
   the program's own code with its full namespace, or with a namespace alias
   declared at the top of the body, so that no name of wasi's hides it.
+* *An exception that escapes it is not caught.* The handler catches
+  nothing, so on wasip3, where webcpp builds a program with exceptions, an
+  exception that escapes the main traps the instance, and the response is
+  never sent. wasmtime 47 then prints the trap and its backtrace on its
+  standard error, `thrown Wasm exception` and `worker trapped or panicked`,
+  and answers the client with its own `500 Internal Server Error`, the HTML
+  page it answers an internal error with; it serves the requests after it.
+  On wasip2 webcpp builds without exceptions, so none can escape.
 * *The target is not parsed.* A main that needs the path and the query
   apart parses the target with a URL library, such as Boost.URL's
   `parse_origin_form`.

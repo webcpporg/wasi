@@ -20,7 +20,8 @@ measured), the `wasi:http` WIT of your target, and a host such as wasmtime
 (47.0.3 measured). The headers include only the standard library and the
 bindings wit-bindgen writes. The helper needs neither exceptions nor RTTI
 and imposes neither: webcpp builds it without exceptions on wasip2 and with
-them on wasip3.
+them on wasip3, where an exception that escapes your main traps the instance
+(see [Your main](#your-main)).
 
 ## Contents
 
@@ -168,6 +169,12 @@ Both are views into the request, which the handler frees once it has written
 the response: the response's content type may view them, and you copy what
 you keep beyond the request. To split the target, parse it with a URL library, Boost.URL's
 `parse_origin_form` for example.
+
+The handler catches nothing. On wasip3, where webcpp builds with exceptions,
+an exception that escapes your main traps the instance: wasmtime 47 prints
+the trap on its standard error, `thrown Wasm exception`, and answers the
+client with its own `500 Internal Server Error`, an HTML page, then serves
+the requests after it. On wasip2 webcpp builds without exceptions.
 
 The main's body is inside a function of `namespace webcpp::wasi::http`: name
 your own code with its full namespace, or with a namespace alias declared at

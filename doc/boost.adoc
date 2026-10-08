@@ -118,6 +118,11 @@ that uses it, saying `legacy_exceptions feature required`. With the flag,
 Clang emits the standard encoding, `exnref`, which wasmtime runs, and serves
 in a component, with no flag of its own.
 
+wasi's handler catches nothing: an exception that escapes the main traps the
+instance, and wasmtime 47 answers the client with its own
+`500 Internal Server Error` (<<wasi-main-rules>>). A main that may throw
+catches what it can answer itself.
+
 [#wasi-boost-json]
 === Boost.JSON
 
