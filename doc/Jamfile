@@ -1,0 +1,15 @@
+# Copyright (c) 2026 WebCpp.org
+#
+# Distributed under the Boost Software License, Version 1.0. (See
+# accompanying file LICENSE_1_0.txt or copy at
+# https://www.boost.org/LICENSE_1_0.txt)
+
+import webcpp ;
+
+# The entry point builds only for WASI. The reference parses it natively,
+# with the bindings of wasip2 and the macro of that version; the Doc Comments
+# of its wasip3 branch are checked too, with the bindings and the macro of
+# wasip3.
+webcpp.reference wasi : <library>/webcpp/wasi//http-bindings-p2-headers
+  <define>WEBCPP_WASI_HTTP_P2
+  : <library>/webcpp/wasi//http-bindings-p3-headers <define>WEBCPP_WASI_HTTP_P3 ;

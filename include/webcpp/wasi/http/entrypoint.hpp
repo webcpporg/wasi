@@ -5,13 +5,15 @@
 // https://www.boost.org/LICENSE_1_0.txt)
 
 /**
- Everything that touches the WebAssembly component ABI of an HTTP handler: the
- handler the target's world exports, and WEBCPP_WASI_HTTP_MAIN_BEGIN/END, which
- define the program's main that the handler calls.
+ The HTTP handler a WASI component exports, and the two macros that define the
+ program's main it calls.
 
- Tip: the build defines WEBCPP_WASI_HTTP_P2 or WEBCPP_WASI_HTTP_P3, and
- generates the world's C bindings with --rename-world webcpp_wasi_http, so
- webcpp_wasi_http.h and its names are the same in every project.
+ It compiles only for wasip2 and wasip3: the build defines exactly one of
+ WEBCPP_WASI_HTTP_P2 and WEBCPP_WASI_HTTP_P3, and generates the world's C
+ bindings with `--rename-world webcpp_wasi_http`, so that webcpp_wasi_http.h
+ and its names are the same in every project.
+
+ @see "What your build provides", in the guide.
 */
 #ifndef WEBCPP_WASI_HTTP_ENTRYPOINT_HPP
 #define WEBCPP_WASI_HTTP_ENTRYPOINT_HPP
@@ -33,8 +35,23 @@ extern "C" {
 namespace webcpp::wasi::http {
 
 /**
- The program's main, defined between WEBCPP_WASI_HTTP_MAIN_BEGIN and
- WEBCPP_WASI_HTTP_MAIN_END.
+ Answers one HTTP request, given its method and its target: the program's main.
+
+ A program defines it once, by writing its body between
+ @ref WEBCPP_WASI_HTTP_MAIN_BEGIN and @ref WEBCPP_WASI_HTTP_MAIN_END; the
+ handler calls it once for each request and sends what it returns. The body
+ is inside a function of the namespace webcpp::wasi::http, so it names the
+ program's own code with its full namespace, or with a namespace alias
+ declared at its top.
+
+ @param method The request's method as it travels on the wire, such as
+ `"GET"`, or an extension method as it was sent.
+ @param target The request target, its path and query, such as
+ `"/v1/greeting?name=ana"`, or `"/"` when the request carried none.
+ @return The response the handler sends.
+ @note Both parameters view the request, and are valid until the main
+ returns: copy what it keeps.
+ @see "Your main", in the guide.
 */
 [[nodiscard]] response http_main(std::string_view method, std::string_view target);
 
@@ -69,7 +86,7 @@ inline std::string_view method_name(const wasi_http_types_method_t& method) {
  Builds the response's headers: its content type when it has one, and
  nothing else.
 
- Tip: append's result is not read; it fails only on a malformed or forbidden
+ @note append's result is not read: it fails only on a malformed or forbidden
  header, and the name here is a literal.
 */
 inline wasi_http_types_own_fields_t headers_of(const response& answer) {
@@ -106,7 +123,7 @@ inline void refuse(exports_wasi_http_incoming_handler_own_response_outparam_t ou
 /**
  Writes every byte to the body's stream; false when the stream refused a write.
 
- Tip: blocking-write-and-flush accepts at most 4096 bytes per call.
+ @note blocking-write-and-flush accepts at most 4096 bytes per call.
 */
 inline bool write_all(wasi_http_types_borrow_outgoing_body_t body, std::string_view pending) {
     wasi_http_types_own_output_stream_t stream{};
@@ -135,17 +152,15 @@ inline bool write_all(wasi_http_types_borrow_outgoing_body_t body, std::string_v
 /**
  Sends the answer: status and headers first, then the body.
 
- Tip: once the outparam is set nothing can be taken back; a body not written
+ @note Once the outparam is set nothing can be taken back: a body not written
  whole is dropped without finish, which wasi:http reports as a failed response.
 */
 inline void respond(exports_wasi_http_incoming_handler_own_response_outparam_t out,
                     const response& answer) {
     const wasi_http_types_own_outgoing_response_t response =
         wasi_http_types_constructor_outgoing_response(headers_of(answer));
-    /**
-     Sets the status; the result is not read, because set-status-code fails
-     only outside 100-599, where no status a main answers should be.
-    */
+    // Sets the status; the result is not read, because set-status-code fails
+    // only outside 100-599, where no status a main answers should be.
     static_cast<void>(wasi_http_types_method_outgoing_response_set_status_code(
         wasi_http_types_borrow_outgoing_response(response), static_cast<uint16_t>(answer.status)));
 
@@ -166,10 +181,8 @@ inline void respond(exports_wasi_http_incoming_handler_own_response_outparam_t o
         wasi_http_types_outgoing_body_drop_own(body);
         return;
     }
-    /**
-     Finishes the body; the result is not read, because finish fails only when
-     the body disagrees with a content-length, which this response does not send.
-    */
+    // Finishes the body; the result is not read, because finish fails only when
+    // the body disagrees with a content-length, which this response does not send.
     wasi_http_types_error_code_t finish_error{};
     static_cast<void>(wasi_http_types_static_outgoing_body_finish(body, nullptr, &finish_error));
 }
@@ -180,8 +193,8 @@ inline void respond(exports_wasi_http_incoming_handler_own_response_outparam_t o
  Waits inside the task until the copy pending on this waitable completes, and
  returns the event's status.
 
- Tip: the task never resumes in the callback, because context slot 0 belongs to
- wasi-libc on wasip3 (measured: using it trapped).
+ @note The task never resumes in the callback, because context slot 0 belongs
+ to wasi-libc on wasip3 (measured: using it trapped).
 */
 inline uint32_t wait_for(uint32_t waitable) {
     const webcpp_wasi_http_waitable_set_t set = webcpp_wasi_http_waitable_set_new();
@@ -204,13 +217,10 @@ inline bool write_all(wasi_http_types_stream_u8_writer_t writer, std::string_vie
         if (status == WEBCPP_WASI_HTTP_WAITABLE_STATUS_BLOCKED) {
             status = wait_for(writer);
         }
-        /**
-         Consumes what the write took, and stops when the reader went away.
-
-         Tip: WEBCPP_WASI_HTTP_WAITABLE_COUNT and WEBCPP_WASI_HTTP_WAITABLE_STATE are
-         wit-bindgen's macros, whose int literals bugprone-signed-bitwise reports here,
-         on wasip3's aggregate translation unit.
-        */
+        // Consumes what the write took, and stops when the reader went away.
+        // WEBCPP_WASI_HTTP_WAITABLE_COUNT and WEBCPP_WASI_HTTP_WAITABLE_STATE are
+        // wit-bindgen's macros, whose int literals bugprone-signed-bitwise reports here,
+        // on wasip3's aggregate translation unit.
         // NOLINTNEXTLINE(bugprone-signed-bitwise)
         bytes.remove_prefix(WEBCPP_WASI_HTTP_WAITABLE_COUNT(status));
         // NOLINTNEXTLINE(bugprone-signed-bitwise)
@@ -225,7 +235,8 @@ inline bool write_all(wasi_http_types_stream_u8_writer_t writer, std::string_vie
  Resolves the trailers future: with none when the body was written whole, and
  with an internal error when it was not.
 
- Tip: that error is how the wasi:http of WASI 0.3 tells the host the body is incomplete.
+ @note That error is how the wasi:http of WASI 0.3 tells the host the body is
+ incomplete.
 */
 inline void resolve_trailers(
     wasi_http_types_future_result_option_own_trailers_error_code_writer_t writer, bool complete) {
@@ -279,7 +290,7 @@ inline void handle(exports_wasi_http_incoming_handler_own_incoming_request_t req
  Handles one request on wasip3: reads the method and the target, asks the program's
  main for the answer, returns the response and then streams its body.
 
- Tip: the handler is lifted asynchronously and always ends with EXIT.
+ @note The handler is lifted asynchronously and always ends with EXIT.
 */
 inline webcpp_wasi_http_callback_code_t handle(exports_wasi_http_handler_own_request_t request) {
     const wasi_http_types_borrow_request_t borrowed = wasi_http_types_borrow_request(request);
@@ -304,15 +315,11 @@ inline webcpp_wasi_http_callback_code_t handle(exports_wasi_http_handler_own_req
         wasi_http_types_future_result_option_own_trailers_error_code_new(&trailers_writer);
     wasi_http_types_tuple2_own_response_future_result_void_error_code_t made{};
     wasi_http_types_static_response_new(headers_of(reply), &contents, trailers, &made);
-    /**
-     Drops the future of whether the host sent the response, unread: the guest
-     could change nothing about a response already sent.
-    */
+    // Drops the future of whether the host sent the response, unread: the guest
+    // could change nothing about a response already sent.
     wasi_http_types_future_result_void_error_code_drop_readable(made.f1);
-    /**
-     Sets the status; the result is not read, because set-status-code fails
-     only outside 100-599, where no status a main answers should be.
-    */
+    // Sets the status; the result is not read, because set-status-code fails
+    // only outside 100-599, where no status a main answers should be.
     static_cast<void>(wasi_http_types_method_response_set_status_code(
         wasi_http_types_borrow_response(made.f0), static_cast<uint16_t>(reply.status)));
 
@@ -336,11 +343,17 @@ inline webcpp_wasi_http_callback_code_t handle(exports_wasi_http_handler_own_req
 #ifdef WEBCPP_WASI_HTTP_P2
 
 /**
- Defines the handler the wasip2 world exports, which hands each request to
- webcpp::wasi::http::detail::handle.
+ Defines the `extern "C"` handler the target's world exports, which hands each
+ request to the library's handler.
 
- Tip: the name is the one wit-bindgen generates for wasi:http/incoming-handler;
- the component's glue (webcpp_wasi_http.c) calls it by that name.
+ On wasip2 that is the handler of wasi:http/incoming-handler; on wasip3, the
+ handler of wasi:http/handler and its callback. @ref WEBCPP_WASI_HTTP_MAIN_BEGIN
+ expands it, so a program that writes its main between the two macros never
+ names it.
+
+ @note Its name is the one wit-bindgen generates for wasi:http/incoming-handler,
+ and the component's glue, webcpp_wasi_http.c, calls it by that name.
+ @see "How a request flows", in the guide.
 */
 #define WEBCPP_WASI_HTTP_EXPORTS()                                         \
     extern "C" void exports_wasi_http_incoming_handler_handle(             \
@@ -352,11 +365,18 @@ inline webcpp_wasi_http_callback_code_t handle(exports_wasi_http_handler_own_req
 #else  // WEBCPP_WASI_HTTP_P3
 
 /**
- Defines the handler the wasip3 world exports, which hands each request to
- webcpp::wasi::http::detail::handle, and its callback, never reached.
+ Defines the `extern "C"` handler the target's world exports, which hands each
+ request to the library's handler.
 
- Tip: the names are the ones wit-bindgen generates for wasi:http/handler; the
- callback is never reached because handle always ends with EXIT.
+ On wasip3 that is the handler of wasi:http/handler and its callback; on
+ wasip2, the handler of wasi:http/incoming-handler. @ref WEBCPP_WASI_HTTP_MAIN_BEGIN
+ expands it, so a program that writes its main between the two macros never
+ names it.
+
+ @note Their names are the ones wit-bindgen generates for wasi:http/handler,
+ and the component's glue, webcpp_wasi_http.c, calls them by those names; the
+ callback is never reached, because the handler always ends with EXIT.
+ @see "How a request flows", in the guide.
 */
 #define WEBCPP_WASI_HTTP_EXPORTS()                                                         \
     extern "C" webcpp_wasi_http_callback_code_t exports_wasi_http_handler_handle(          \
@@ -371,17 +391,31 @@ inline webcpp_wasi_http_callback_code_t handle(exports_wasi_http_handler_own_req
 #endif
 
 /**
- Defines the target's exported handler, then opens the program's main, which
- answers one HTTP request given its method and its target (path and query).
+ Opens the definition of the program's main, after the handler the target's
+ world exports.
 
- Tip: close it with WEBCPP_WASI_HTTP_MAIN_END(); use the pair once in a program.
+ The main's body follows it, returns a @ref webcpp::wasi::http::response for
+ the request, and ends with @ref WEBCPP_WASI_HTTP_MAIN_END. Together they
+ define @ref webcpp::wasi::http::http_main and, before it, the `extern "C"`
+ handler of @ref WEBCPP_WASI_HTTP_EXPORTS.
+
+ @param method The name the body gives the request's method, a
+ `std::string_view` such as `"GET"`.
+ @param target The name the body gives the request target, its path and
+ query, a `std::string_view` such as `"/v1/greeting?name=ana"`.
+ @note Write the pair once in a program, in one source file: a program has one
+ main and exports one handler.
+ @see "Your main", in the guide.
 */
 #define WEBCPP_WASI_HTTP_MAIN_BEGIN(method, target)                                     \
     WEBCPP_WASI_HTTP_EXPORTS()                                                          \
     webcpp::wasi::http::response webcpp::wasi::http::http_main(std::string_view method, \
                                                                std::string_view target) {
 /**
- Closes the definition WEBCPP_WASI_HTTP_MAIN_BEGIN opened.
+ Closes the definition of the program's main that @ref WEBCPP_WASI_HTTP_MAIN_BEGIN
+ opened.
+
+ @see "Your main", in the guide.
 */
 #define WEBCPP_WASI_HTTP_MAIN_END() }
 
