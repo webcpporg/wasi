@@ -47,9 +47,8 @@ as `200 OK`, and the status of `wasi:http`, 16 bits wide, would read 65736 as
 200, so a main's bug would reach the client as a success; and a content type
 the host refused would be left out without a word.
 
-A
-`content_type` is a view rather than a string because it is nearly always a
-literal: a view of one costs nothing, where a `std::string` of
+A `content_type` is a view rather than a string because it is nearly always
+a literal: a view of one costs nothing, where a `std::string` of
 `"application/json"`, 16 characters, would allocate on wasm32, where
 `libc++` keeps at most 10 in the string itself.
 
