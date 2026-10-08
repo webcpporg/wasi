@@ -1,0 +1,5 @@
+name: "greeter"
+route: "/v1/greeting"
+route: "/v1/health"
+changed: {"name":"greeter","routes":["/v1/greeting","/v1/health"],"limits":{"body":65536,"debug":true}}
+a broken text: syntax error, read as null

@@ -1,0 +1,60 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+= wasi: WASI components for {cpp}
+:toc: left
+:toclevels: 1
+:idprefix:
+:sectanchors:
+:example-caption!:
+:attribute-missing: warn
+
+wasi is a header-only helper for {cpp}20 programs built as WebAssembly
+components on WASI, one of the libraries of
+https://github.com/webcpporg/webcpp[webcpp]. Its first part,
+`webcpp::wasi::http`, is an HTTP handler: a program writes one function, its
+main, which turns a request's method and target into a response, and wasi
+exports the handler that `wasmtime serve`, or any host of `wasi:http`, calls,
+reads the request, calls the main and writes the answer back. It covers WASI
+0.2 (wasip2) and WASI 0.3 (wasip3).
+
+This page teaches wasi concept by concept, states what it guarantees, and
+shows what webcpp's build does to compile Boost for WASI, with Boost.JSON in
+a command and in a component. Every program it shows was compiled for
+wasm32-wasip2 and wasm32-wasip3 and run by wasmtime, and every answer it
+shows is what that program answered. The <<reference,reference>> that closes
+it lists every name the headers declare.
+
+include::introduction.adoc[]
+
+include::main.adoc[]
+
+include::response.adoc[]
+
+include::build.adoc[]
+
+include::wasip3.adoc[]
+
+include::flow.adoc[]
+
+include::limits.adoc[]
+
+include::guarantees.adoc[]
+
+include::boost.adoc[]
+
+include::testing.adoc[]
+
+[#reference]
+== Reference
+
+Every name wasi declares, in the namespace `webcpp::wasi::http`, and its
+macros, from the Doc Comments of its headers: each with its declaration,
+what it does and what it asks of its caller. It is read with the bindings of
+wasip2 and `WEBCPP_WASI_HTTP_P2`, so the macro `WEBCPP_WASI_HTTP_EXPORTS`
+shows the handler of wasip2; <<wasi-wasip3>> says what differs on wasip3.
+
+include::{reference}[leveloffset=+1]

@@ -1,0 +1,66 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#wasi-guarantees]
+== Guarantees
+
+What wasi promises whatever its program does, and what holds each promise: a
+test of wasi's, which fails when the promise breaks, or review, where no
+test can make the host misbehave on demand. A guarantee keeps its number, and
+the anchor named after it, so a comment of the code or of a test cites it by
+that anchor: `+(doc: #wasi-invariant-4)+` sends its reader to the fourth.
+`b2 libs/wasi/doc`, which builds this page, fails on a citation that names no
+anchor of it. The tests are those of <<wasi-testing-library>>.
+
+. [[wasi-invariant-1]]*The entry point compiles only for WASI, and for one
+version.* It includes the `webcpp_wasi_http.h` of the program's world, and
+refuses to compile unless exactly one of `WEBCPP_WASI_HTTP_P2` and
+`WEBCPP_WASI_HTTP_P3` is defined. `response.hpp` compiles anywhere. _Held
+by_ `neither_target_refused` and `both_targets_refused`, which compile only
+with the guard's own error, on wasip2 and on wasip3; by the public headers
+compiled alone, the entry point on wasip2 and wasip3, and the response there
+and natively; and by `response`, run natively and on both versions.
+. [[wasi-invariant-2]]*The header defines no function of its own that a
+program links.* The exported `extern "C"` functions are defined by the
+expansion of `WEBCPP_WASI_HTTP_MAIN_BEGIN`, in the program; the header holds
+only inline functions and macros, so every translation unit of a program may
+include it, and the program writes the pair of macros once. _Held by_
+`http_two_units`, a component of two translation units that both include the
+entry point, which links and answers.
+. [[wasi-invariant-3]]*Nothing written back points into freed memory.* The
+handler frees the method and the target, and drops the request, only after
+the main has returned; the response owns its body, and its content type is
+meant for a literal. _Held by review_, with two tests beside it: `response`
+checks that the body is a copy, and `http_methods` echoes each target
+through the main.
+. [[wasi-invariant-4]]*Every byte of the body is written.* On wasip2 in
+chunks of at most 4096 bytes, the most `blocking-write-and-flush` takes; on
+wasip3 by writing until the stream has taken every byte. _Held by_
+`http_long_body`, whose body of three chunks and some bytes more arrives
+whole, on wasip2 and on wasip3. wasmtime 47 takes the whole body in one write
+on wasip3, a body of 1{nbsp}MiB too, so it never makes the loop of wasip3 take
+a second turn: the test fails there when a write is cut short, and the loop
+stands for a host that takes less per write.
+. [[wasi-invariant-5]]*On wasip3, the handler never resumes in its callback.*
+It waits inside the task for every write that blocks, and always ends with
+`EXIT`, because context slot 0 belongs to wasi-libc on wasip3: using it
+trapped. _Held by_ `http_long_body` on wasip3, and every component served
+there, _and by review_.
+. [[wasi-invariant-6]]*A failure is reported the way the version defines.*
+One found before the response is committed answers an internal error. After
+it is committed, a body not written whole is dropped without being finished
+on wasip2, and on wasip3 the trailers future is resolved with an internal
+error. _Held by review_: wasmtime offers no way to make a write fail on
+demand.
+. [[wasi-invariant-7]]*The response carries a `content-type` header only when
+`content_type` is not empty, and no other header.* _Held by_
+`http_no_content_type`, whose answers carry no header for an empty content
+type and exactly one for a set one.
+. [[wasi-invariant-8]]*wasi names nothing of the programs that use it.* The
+only generated names it uses are those of the standard interfaces and those
+`--rename-world webcpp_wasi_http` makes. _Held by_ the lint's rule on the
+banned word, which refuses the name of the program wasi was first written
+for in every file, file name and commit, _and by review_.

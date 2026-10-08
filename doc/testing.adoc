@@ -1,0 +1,175 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#wasi-testing]
+== Testing
+
+A component is a program that only a host runs, so its test runs one: it
+builds the component, has wasmtime serve it, sends it requests and compares
+its answers with the ones committed beside it. What the main computes needs
+no host. The response compiles natively, and a main that calls code of the
+program's own, as the catalog of <<wasi-boost-json-component>> does, leaves
+that code to be tested natively, as any other.
+
+[#wasi-testing-component]
+=== Testing a component
+
+In a b2 project that uses webcpp, a served test is one line of a test or
+example Jamfile, as the complete example's is:
+
+[listing]
+----
+include::{examples}/Jamfile[tag=hello,indent=0]
+----
+
+`webcpp.serve <source> : <requirements> ;` declares the test `<stem>`,
+which builds the source as a component for wasip2 and for wasip3, the
+Jamfile's targets among them. It serves the component with
+`wasmtime serve`, with `-S cli` on wasip2 and `-S cli,p3 -W
+component-model-async` on wasip3, on a port the system chooses, so that two
+lanes at once never share one. It then sends it each line of
+`<stem>.requests`, `<METHOD> <target>`, and passes when the transcript of the
+answers equals `<stem>.expected`, byte for byte; otherwise it fails with the
+difference. It is a test of b2's, which `--dump-tests` lists and
+`--out-xml` records, so a failure shows in the test matrix. The explicit
+target `<stem>-component` is the same component, to serve by hand.
+
+The transcript writes each request as the curl command that sends it, which
+a shell runs as it is written:
+
+* `curl -i -X <METHOD> http://localhost:8080<target>`, each word quoted
+  where a shell would read it otherwise, as the target `?name=ana` is;
+* `curl -I <url>` for `HEAD`, since `curl -X HEAD` waits for a body that
+  never comes;
+* `--request-target '*'` before the bare origin for a target that is not a
+  path, the `*` of `OPTIONS *`.
+
+Then come the status line, `HTTP/1.1 <status> <reason>`, the response's
+headers in lower case and sorted, an empty line and the body as it came.
+The headers wasmtime adds to every response, `date` and `transfer-encoding`,
+are left out, and the host and the port are written fixed, so that one
+transcript holds on every machine and every lane. Two requests are separated
+by an empty line. `tools/component/serve.py`, in the superproject, writes
+the transcript and holds its format.
+
+[#wasi-testing-library]
+=== How wasi is tested
+
+wasi's tests are under `test/`, each declared in `test/Jamfile`; the
+guarantees of <<wasi-guarantees>> cite them:
+
+[cols="1,3",options="header"]
+|===
+| Test | What it checks
+
+| `response`
+| A lightweight_test program: the response's defaults, a designated
+  initializer that names one member, and that the body is a copy. Run
+  natively, on wasip2 and on wasip3.
+
+| `http_methods`
+| A served component: `GET`, `HEAD`, `POST`, `PUT`, `DELETE`, `OPTIONS`,
+  `TRACE`, `PATCH` and the extension method `PURGE` reach the main by name,
+  and targets with a query, an escape, `/` and `*` reach it as they were
+  sent. A `HEAD` answer carries no body.
+
+| `http_long_body`
+| A served component whose body is three chunks of 4096 bytes and some
+  more, which must arrive whole, every numbered line of it.
+
+| `http_no_content_type`
+| A served component: an empty content type sends no header, with a body
+  and without one, and a set one sends exactly one.
+
+| `http_two_units`
+| A served component of two translation units that both include the entry
+  point, which links and answers.
+
+| `neither_target_refused`, `both_targets_refused`
+| A translation unit that defines neither version's macro, and one that
+  defines both, each compiled and passing only on the guard's own error, on
+  wasip2 and on wasip3.
+|===
+
+Beside them, `test/Jamfile` compiles each of the {n-headers} public headers
+alone, as the only include of its translation unit, so that a header that
+leans on an include it does not make fails, naming it: the entry point and
+`<webcpp/wasi.hpp>` on wasip2 and wasip3, with the bindings and the macro of
+each, and the response natively too. `example/Jamfile` serves the complete
+example and the component of <<wasi-boost-json-component>>, and runs the
+command of <<wasi-boost-json-command>>, comparing what it prints with the
+`.expected` beside it.
+
+[#wasi-testing-targets]
+=== Targets
+
+wasi's programs are built for the targets their Jamfiles declare: every
+component, and the command, on wasip2 and wasip3; the response, and its
+header alone, natively as well. From the root of a webcpp checkout:
+
+`b2 libs/wasi/test libs/wasi/example toolset=clang-wasip2 testing.launcher=wasmtime`::
+Builds and runs the {n-tests-wasip2} tests for wasm32-wasip2, without
+exceptions, {n-served-wasip2} of them components that wasmtime serves, and
+the command, which wasmtime runs. `toolset=clang-wasip3` does the same for
+wasm32-wasip3, with exceptions: {n-tests-wasip3} tests, {n-served-wasip3} of
+them served.
+
+`b2 libs/wasi/test libs/wasi/example`::
+Builds and runs, natively, the {n-tests-native} tests that need no WASI
+toolchain, and needs none of the tools below.
+
+The WASI toolsets are those of <<wasi-boost-toolsets>>. b2 compares
+timestamps, so a result that counts is built from scratch, with `b2 -a`;
+`b2 libs/wasi/test//http_methods toolset=clang-wasip2
+testing.launcher=wasmtime` builds and runs one test alone, while working on
+it.
+
+[#wasi-testing-tools]
+=== The tools a machine needs
+
+A WASI build needs, besides b2 and Boost 1.92:
+
+[cols="1,3",options="header"]
+|===
+| Tool | What for
+
+| wasi-sdk 34
+| The Clang that compiles and links for wasm32-wasip2 and wasm32-wasip3,
+  registered as in <<wasi-boost-toolsets>>.
+
+| wit-bindgen 0.62.0
+| Generates the C bindings of each world, when a component is built.
+
+| The `wasi:http` WIT of WASI 0.2.12 and 0.3.0
+| The `wit/deps` directories of the Rust crates `wasip2` 1.0.4 and `wasip3`
+  0.9.0, which the bindings are generated from.
+
+| wasmtime 47.0.3
+| Runs every test and example, and serves each component.
+|===
+
+Where b2 looks for each is in <<wasi-build-b2>>; a WASI build that needs one
+that is not there stops, naming it and every place it looked.
+
+[#wasi-testing-report]
+=== The test matrix
+
+The continuous integration runs wasi's tests and examples in lanes, one
+toolset each: the native compilers, and wasip2 and wasip3. Each lane builds
+from scratch and records what b2 built and ran:
+
+[source,bash]
+----
+b2 -a --dump-tests --out-xml=<lane>.xml toolset=<toolset> libs/wasi/test libs/wasi/example
+----
+
+webcpp's `tools/report/report.py` merges the files of every lane into a
+matrix: a page of the libraries by lanes, and a page of each library's tests
+and examples by lanes, where each cell says whether that program passed in
+that lane, or how it failed, at compile time, at link time or when it ran.
+With `--out-xml`, b2 exits 0 even when a test fails, so the report is the
+verdict. The matrix is published with the documentation, at
+https://webcpporg.github.io/webcpp/report/.

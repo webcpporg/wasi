@@ -1,0 +1,100 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#wasi-introduction]
+== Introduction
+
+A WebAssembly component is a program that says, in WIT, what it imports from
+its host and what it exports to it. `wasi:http` is the WASI interface of HTTP:
+a component that exports its handler is called once for each request a host
+receives, such as `wasmtime serve`, and answers it. The handler's signature,
+and every type it reads and writes, are the C functions and structs that
+wit-bindgen generates from the WIT, and they differ between WASI 0.2 and WASI
+0.3.
+
+wasi writes that handler once, for both versions. A program gives it one
+function, its main, which receives the request's method and target and
+returns a response: a status, a content type and a body. Everything between
+the host and that function, reading the request, freeing it, sending the
+headers and writing every byte of the body, is wasi's.
+
+[#wasi-introduction-example]
+=== A complete example
+
+A component that greets whoever calls it with `GET`, and refuses every other
+method. Its whole source is one file:
+
+[source]
+----
+include::{examples}/http_hello.cpp[tag=main,indent=0]
+----
+
+The two macros open and close the main, whose parameters are named in the
+first one: `method` and `target`, two `std::string_view`. The main returns a
+`webcpp::wasi::http::response`, written here with designated initializers.
+
+In a b2 project, the component is one line of a Jamfile, which builds it for
+wasip2 and for wasip3, serves it with wasmtime, sends it requests and
+compares its answers with a file (<<wasi-testing>>):
+
+[listing]
+----
+include::{examples}/Jamfile[tag=hello,indent=0]
+----
+
+The requests it is sent, one per line, `<METHOD> <target>`:
+
+[listing]
+----
+include::{examples}/http_hello.requests[]
+----
+
+and what it answered, each request written as the curl command that sends
+it. curl's `-i` also prints the two headers wasmtime adds to every response,
+`date` and `transfer-encoding`, which are left out here:
+
+[listing]
+----
+include::{examples}/http_hello.expected[]
+----
+
+The same program builds by hand with wasi-sdk's `clang++`, once its
+bindings are generated: <<wasi-build-by-hand>> shows the commands.
+
+[#wasi-requirements]
+=== Requirements
+
+* *A {cpp}20 compiler for WebAssembly:* wasi-sdk 34, whose Clang builds
+  wasm32-wasip2 and wasm32-wasip3. The entry point compiles for those two
+  targets alone; the response compiles everywhere, natively too.
+* *wit-bindgen's C generator,* 0.62.0 measured, and the `wasi:http` WIT of
+  the target: the `wit/deps` directory of the Rust crate `wasip2` 1.0.4 for
+  WASI 0.2.12, or of `wasip3` 0.9.0 for WASI 0.3.0.
+* *A host of `wasi:http`,* such as wasmtime, 47.0.3 measured.
+* *Nothing else.* The headers include only the standard library and the
+  bindings wit-bindgen writes, and need no Boost. They throw, try and catch
+  nothing, and use no RTTI: wasi needs neither exceptions nor RTTI, and
+  imposes neither. webcpp builds every program of it without exceptions on
+  wasip2 and with them on wasip3 (<<wasi-boost>>).
+
+[#wasi-reading]
+=== Reading this page
+
+`<webcpp/wasi.hpp>` includes the whole library, which is
+`<webcpp/wasi/http/entrypoint.hpp>`: the handler and the macros of the main.
+`<webcpp/wasi/http/response.hpp>` holds only the response, for code that
+needs nothing of the component ABI. Their names are in the namespace
+`webcpp::wasi::http`, and what is not public in `webcpp::wasi::http::detail`.
+
+<<wasi-main>> shows how a program writes its main, and <<wasi-response>>
+what it returns. <<wasi-build>> lists what a build gives the header, through
+b2 or by hand, and <<wasi-wasip3>> what changes on WASI 0.3.
+<<wasi-flow>> follows one request through the handler, and <<wasi-limits>>
+says what the handler does not do. <<wasi-guarantees>> states what wasi
+promises, each promise with the test or the review that holds it.
+<<wasi-boost>> shows what webcpp's build does to compile Boost for WASI,
+with Boost.JSON in a command and in a component, and <<wasi-testing>> how a
+component is tested, and how wasi is.

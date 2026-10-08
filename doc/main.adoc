@@ -1,0 +1,63 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#wasi-main]
+== Your main
+
+A program's main is the body written between the two macros, as the
+complete example's is (<<wasi-introduction-example>>).
+`WEBCPP_WASI_HTTP_MAIN_BEGIN(method, target)` and
+`WEBCPP_WASI_HTTP_MAIN_END()` define the function
+`webcpp::wasi::http::http_main`, which takes the two `std::string_view`
+parameters the first macro names and returns a
+`webcpp::wasi::http::response`; and, before it, the `extern "C"` handler the
+program's world exports, which calls it. The handler calls the main once for
+each request, and sends what it returns.
+
+[cols="1,3",options="header"]
+|===
+| Parameter | What it holds
+
+| `method`
+| The request's method as it travels on the wire: `"GET"`, `"POST"` and the
+  other methods of HTTP, and an extension method, such as `"PURGE"`, as it
+  was sent.
+
+| `target`
+| The request target, its path and its query, as it was sent:
+  `"/v1/greeting?name=ana"`, with nothing decoded. `"/"` when the request
+  carried none, and `"*"` for `OPTIONS *`.
+|===
+
+[#wasi-main-rules]
+=== Its rules
+
+* *Once per program.* The pair defines the main and the handler a component
+  exports, so a program writes it once, in one source file. Other
+  translation units of the program may include the header: it holds only
+  inline functions and macros (<<wasi-invariant-2,guarantee 2>>).
+* *The parameters view the request.* They are valid until the main returns,
+  and the request is freed after that: the main copies what it keeps
+  (<<wasi-invariant-3,guarantee 3>>).
+* *The main's body is inside a function of `webcpp::wasi::http`.* It names
+  the program's own code with its full namespace, or with a namespace alias
+  declared at the top of the body, so that no name of wasi's hides it.
+* *The target is not parsed.* A main that needs the path and the query
+  apart parses the target with a URL library, such as Boost.URL's
+  `parse_origin_form`.
+
+[#wasi-main-format]
+=== Formatting it
+
+clang-format reads the body as a function's when its configuration names the
+two macros as the start and the end of a block, as wasi's own `.clang-format`
+does:
+
+[listing]
+----
+MacroBlockBegin: "^WEBCPP_WASI_HTTP_MAIN_BEGIN$"
+MacroBlockEnd: "^WEBCPP_WASI_HTTP_MAIN_END$"
+----

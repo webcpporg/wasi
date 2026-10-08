@@ -6,6 +6,8 @@
 
 import webcpp ;
 
+webcpp.doc wasi : wasi.adoc ;
+
 # The entry point builds only for WASI. The reference parses it natively,
 # with the bindings of wasip2 and the macro of that version; the Doc Comments
 # of its wasip3 branch are checked too, with the bindings and the macro of
