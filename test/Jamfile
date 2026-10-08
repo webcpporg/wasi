@@ -17,3 +17,25 @@ webcpp.targets wasip2 wasip3 ;
 webcpp.headers-alone wasi : ../include : wasi.hpp wasi/http/entrypoint.hpp
   : <library>/webcpp/wasi//http ;
 webcpp.headers-alone wasi : ../include : wasi/http/response.hpp : : native wasip2 wasip3 ;
+
+# The response's defaults, and that it owns its body, natively and on both
+# WASI targets.
+webcpp.run response : response_test.cpp : : native wasip2 wasip3 ;
+
+# Components served by wasmtime, whose answers are their .expected: each
+# method reaches the main by name and the target verbatim; a body longer than
+# one write arrives whole; content-type is sent only when set, and no other
+# header; and two translation units that both include the entry point link
+# into one program, since the header defines only inline functions and macros.
+webcpp.serve http_methods.cpp : <library>/webcpp/wasi//http ;
+webcpp.serve http_long_body.cpp : <library>/webcpp/wasi//http ;
+webcpp.serve http_no_content_type.cpp : <library>/webcpp/wasi//http ;
+webcpp.serve http_two_units.cpp : <library>/webcpp/wasi//http <source>http_two_units_answer.cpp ;
+
+# The entry point refuses a translation unit that defines neither target's
+# macro, and one that defines both: with the bindings of the target, and
+# without /webcpp/wasi//http, which would define its macro.
+webcpp.compile-fail neither_target_refused : neither_target_refused.cpp
+  : <library>/webcpp/wasi//http-bindings ;
+webcpp.compile-fail both_targets_refused : both_targets_refused.cpp
+  : <library>/webcpp/wasi//http-bindings <define>WEBCPP_WASI_HTTP_P2 <define>WEBCPP_WASI_HTTP_P3 ;

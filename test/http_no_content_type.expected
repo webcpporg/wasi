@@ -1,0 +1,14 @@
+$ curl -i -X GET http://localhost:8080/none
+HTTP/1.1 200 OK
+
+no content type
+
+$ curl -i -X GET http://localhost:8080/empty
+HTTP/1.1 200 OK
+
+
+$ curl -i -X GET http://localhost:8080/plain
+HTTP/1.1 200 OK
+content-type: text/plain
+
+a content type
