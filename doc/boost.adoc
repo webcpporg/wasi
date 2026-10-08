@@ -1,0 +1,226 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#wasi-boost]
+== Building for WASI with Boost
+
+wasi itself needs no Boost, but a component rarely stops at its handler: it
+parses JSON, computes, keeps state. webcpp builds every library it holds for
+wasm32-wasip2 and wasm32-wasip3, Boost included, and this chapter shows what
+its build does for that, so that a project of its own can do the same. Every
+listing below is either the build's own configuration, included from the
+file the build reads, or a program webcpp compiles and runs on both targets
+on every build.
+
+Boost.JSON, Boost.System, Boost.Decimal and Boost.MSM build and run on both
+targets in webcpp's lanes, as the tests and the examples of its libraries
+use them; <<wasi-boost-json>> shows the first in a command and in a
+component.
+
+[#wasi-boost-toolsets]
+=== The toolsets
+
+The WASI toolsets are b2's `clang`, registered against wasi-sdk 34 under the
+versions `wasip2` and `wasip3`, so that `toolset=clang-wasip2` and
+`toolset=clang-wasip3` name them. A `user-config.jam` registers them with
+these lines, after `local wasi-sdk = /path/to/wasi-sdk ;`, which names
+wasi-sdk's directory; the CI writes the same lines into the user-config of
+each of its WASI lanes:
+
+[listing]
+----
+include::{webcpp-root}/tools/ci/wasi-sdk.jam[tag=wasip2]
+
+include::{webcpp-root}/tools/ci/wasi-sdk.jam[tag=wasip3]
+----
+
+Each gives the target to the compilers and to the linker, and makes
+archives with wasi-sdk's own `llvm-ar` and `llvm-ranlib`.
+
+wasm32-wasip2 is no system b2 knows. webcpp's Jamroot declares a target
+system `wasi` of its own, whose programs end in `.wasm`:
+
+[listing]
+----
+include::{webcpp-root}/Jamroot[tag=wasi-os,indent=0]
+----
+
+It declares it after the toolsets of the `user-config.jam` have loaded, so
+that none of the Unix link options that b2 gives the systems it knows, such
+as `--start-group` or an rpath, reaches wasi-sdk's linker, which rejects
+them. Every target of the two toolsets is then built for that system, and
+linked statically, since WASI has no shared libraries:
+
+[listing]
+----
+include::{webcpp-root}/Jamroot[tag=wasi-target,indent=0]
+----
+
+A program built so runs with wasmtime, which b2 starts for a test or an
+example with `testing.launcher=wasmtime`:
+
+[source,bash]
+----
+b2 toolset=clang-wasip2 testing.launcher=wasmtime libs/wasi/test libs/wasi/example
+----
+
+[#wasi-boost-exceptions-wasip2]
+=== No exceptions on wasip2
+
+Some WebAssembly hosts lack exception handling, so webcpp builds every
+program for wasip2 without exceptions. That is a policy of portability, not
+a limit of the toolchain, and the wasip2 lane is where webcpp proves that its
+libraries work without them. The Jamroot turns them off, and tells Boost:
+
+[listing]
+----
+include::{webcpp-root}/Jamroot[tag=wasip2-exceptions,indent=0]
+----
+
+`BOOST_NO_EXCEPTIONS` asks something of the program. Where Boost would
+throw, it calls `boost::throw_exception`, which its headers declare and
+leave to the program to define: a program built without exceptions that
+calls it, as Boost.System's `result` and Boost.JSON do, does not link
+without a definition. webcpp's
+https://github.com/webcpporg/webcpp/blob/main/tools/throw_exception.cpp[`tools/throw_exception.cpp`]
+defines both overloads: each prints what was thrown on the standard error,
+and aborts, since a throw in such a build is a defect, never a condition.
+webcpp's build links it into every program it builds without exceptions,
+on wasip2 and wherever a user asks for `exception-handling=off`. A program
+built by hand compiles with `-fno-exceptions -DBOOST_NO_EXCEPTIONS`, and
+compiles and links that file, or a definition of its own.
+
+So a program meant for wasip2 asks Boost for errors as values. The command
+of <<wasi-boost-json>> parses with an `error_code`, which a broken text
+sets, and reads the value with `if_object` and `if_contains`, which answer
+a null pointer for what is not there; `as_object` and `at` would report it
+by throwing, which here ends the program.
+
+[#wasi-boost-exceptions-wasip3]
+=== Exceptions on wasip3
+
+On wasip3 a program may use exceptions, as natively, encoded as
+WebAssembly's exception handling, and webcpp builds every program for
+wasip3 with them on:
+
+[listing]
+----
+include::{webcpp-root}/Jamroot[tag=wasip3-exceptions,indent=0]
+----
+
+`-fwasm-exceptions` encodes a throw and a catch as WebAssembly instructions,
+on the compile and on the link, and `-lunwind` links the runtime that
+unwinds the stack. `-mllvm -wasm-use-legacy-eh=false` chooses which
+instructions: the Clang of wasi-sdk 34 emits by default the legacy encoding
+of the proposal's first version, and wasmtime 47 refuses to run a program
+that uses it, saying `legacy_exceptions feature required`. With the flag,
+Clang emits the standard encoding, `exnref`, which wasmtime runs, and serves
+in a component, with no flag of its own.
+
+[#wasi-boost-json]
+=== Boost.JSON
+
+Boost.JSON is not only headers: its definitions are compiled once in a
+program, from the translation unit that includes `<boost/json/src.hpp>`.
+webcpp builds that translation unit as the static library
+`/webcpp//boost_json`, once for each variant and target, so that the
+program's own features, such as `<exception-handling>off`, reach it; a
+program links it with `<library>/webcpp//boost_json`, and needs no compiled
+Boost library. wasi's two programs of this chapter do so:
+
+[listing]
+----
+include::{examples}/Jamfile[tag=boost,indent=0]
+----
+
+[#wasi-boost-json-command]
+==== A command
+
+A WASI command is a program with a `main`, which wasmtime runs as it runs a
+program of the system. This one parses a JSON text, reads what it holds and
+prints it. It includes Boost.JSON, and Boost.System for the error code, and
+calls Boost.JSON's namespace `json`:
+
+[source]
+----
+include::{examples}/boost_json_command.cpp[tag=includes,indent=0]
+----
+
+The text is a literal, so the program reads no input and prints the same on
+every target:
+
+[source]
+----
+include::{examples}/boost_json_command.cpp[tag=text,indent=0]
+----
+
+`main` parses it with an error code, reads its name and its routes, changes
+one of its limits and prints it whole, then parses a broken text:
+
+[source]
+----
+include::{examples}/boost_json_command.cpp[tag=main,indent=0]
+----
+
+It prints, on wasip2 and on wasip3:
+
+[listing]
+----
+include::{examples}/boost_json_command.expected[]
+----
+
+[#wasi-boost-json-component]
+==== A component
+
+A component that answers JSON: the list of a catalog's items, and one item
+by its id. It includes wasi's entry point and Boost.JSON:
+
+[source]
+----
+include::{examples}/boost_json_http.cpp[tag=includes,indent=0]
+----
+
+The catalog is the program's own code, in a namespace of its own, which an
+anonymous one keeps to this file: its items, an item as a JSON object, the
+item a target names, and an answer whose body Boost.JSON writes:
+
+[source]
+----
+include::{examples}/boost_json_http.cpp[tag=catalog,indent=0]
+----
+
+The main refuses every method but `GET`, lists the items, or answers the one
+the target names, or that there is none:
+
+[source]
+----
+include::{examples}/boost_json_http.cpp[tag=main,indent=0]
+----
+
+wasmtime serves it these requests:
+
+[listing]
+----
+include::{examples}/boost_json_http.requests[]
+----
+
+and it answers them so, on wasip2 and on wasip3, the headers wasmtime adds
+left out:
+
+[listing]
+----
+include::{examples}/boost_json_http.expected[]
+----
+
+[#wasi-boost-unsupported]
+=== What does not build
+
+Boost.Asio 1.92 does not compile for wasm32-wasip2 or wasm32-wasip3 with
+wasi-sdk 34: wasi-libc defines no `ESHUTDOWN` and no `::pause`, and its
+`signal.h` stops with `#error`. It was measured when webcpp's first library,
+xactor, was ported: its Asio driver is built natively alone, and xactor
+records why in its example Jamfile and on
+link:{webcpp-libs}/xactor/{webcpp-page}#xactor-drivers-asio[its page].

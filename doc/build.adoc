@@ -1,0 +1,129 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#wasi-build]
+== What your build provides
+
+The entry point is only a header, but it leans on what a build gives it: the
+C bindings of the program's world, which wit-bindgen generates, and which
+version of WASI it is built for. A build provides it with these:
+
+[cols="2,3",options="header"]
+|===
+| What | Why
+
+| `WEBCPP_WASI_HTTP_P2` or `WEBCPP_WASI_HTTP_P3` defined, exactly one
+| It chooses the version. The header stops with `#error` under neither or
+  both (<<wasi-invariant-1,guarantee 1>>).
+
+| The bindings, generated with `--rename-world webcpp_wasi_http`
+| The header includes `webcpp_wasi_http.h` and uses the names wit-bindgen
+  gives the world, such as `webcpp_wasi_http_string_t`. The rename makes
+  them the same in every project, whatever its world is called.
+
+| `webcpp_wasi_http.c`, compiled as C for the target, and
+  `webcpp_wasi_http_component_type.o`, both linked
+| The glue that calls the handler, and the world's type, which the
+  component linker reads.
+
+| The bindings' directory on the include path
+| For `webcpp_wasi_http.h`.
+
+| `-mexec-model=reactor` on the link
+| A component exports a handler and has no C `main`.
+
+| `-S cli` on `wasmtime serve`
+| wasi-libc imports parts of `wasi:cli`.
+|===
+
+[#wasi-build-b2]
+=== With b2
+
+In a b2 project that uses webcpp, a program that exports the HTTP handler
+and nothing else links `/webcpp/wasi//http`, and is done. That target adds
+wasi's headers; generates with wit-bindgen the bindings of the standard
+world of the program's target, which exports `wasi:http/incoming-handler`
+on wasip2 and `wasi:http/handler` on wasip3, renamed `webcpp_wasi_http`, and
+links them; and defines `WEBCPP_WASI_HTTP_P2` on the toolset
+`clang-wasip2`, or `WEBCPP_WASI_HTTP_P3` on `clang-wasip3`. A component is
+then an `exe` with that library and `<linkflags>-mexec-model=reactor`, which
+`webcpp.serve` adds itself, as the complete example's Jamfile shows:
+
+[listing]
+----
+include::{examples}/Jamfile[tag=hello,indent=0]
+----
+
+A program whose world exports more than the HTTP handler uses
+`/webcpp/wasi//wasi`, the headers alone, generates its own world's bindings
+with `webcpp.wit-bindings`, renamed `webcpp_wasi_http` too, and defines the
+macro of its target itself.
+
+b2 looks for each tool only when a target needs it, and a build that needs
+one that is not there stops, naming it and every place it looked:
+
+[cols="1,3",options="header"]
+|===
+| Tool | Where b2 looks
+
+| wit-bindgen
+| `-sWIT_BINDGEN=<path>`, else `.local/wit-bindgen/wit-bindgen` in the
+  superproject, else on `PATH`.
+
+| The `wasi:http` WIT
+| `-sWASI_WIT_P2=<dir>` and `-sWASI_WIT_P3=<dir>`, each the `wit/deps`
+  directory of its crate, else `.local/wasi-wit/p2` and
+  `.local/wasi-wit/p3`.
+
+| wasmtime
+| `-sWASMTIME=<path>`, else on `PATH`, and only when a component is served.
+|===
+
+A `user-config.jam` may set any of them as `-s` does, with
+`modules.poke : WIT_BINDGEN : <path> ;`. A native build needs none of them.
+
+[#wasi-build-by-hand]
+=== By hand
+
+The same component, built with wasi-sdk alone, from a directory that holds
+`main.cpp`, the complete example's source, and the world the component
+exports, `wit/world.wit`, named as the program likes:
+
+[listing]
+----
+package example:hello;
+
+world service {
+  export wasi:http/incoming-handler@0.2.12;
+}
+----
+
+with `wit/deps/` linked to the `wasi:http` 0.2.12 WIT, the `wit/deps`
+directory of the Rust crate `wasip2` 1.0.4. The bindings are generated with
+the world renamed `webcpp_wasi_http`; then wasi-sdk's `clang` compiles them
+as C, and its `clang++` compiles and links a reactor, where `<wasi>` is
+wasi's directory:
+
+[source,bash]
+----
+wit-bindgen c --world service --rename-world webcpp_wasi_http --out-dir gen wit
+
+clang --target=wasm32-wasip2 -c gen/webcpp_wasi_http.c -o gen/webcpp_wasi_http.o -Igen
+clang++ --target=wasm32-wasip2 -std=c++20 -fno-exceptions -mexec-model=reactor \
+    -DWEBCPP_WASI_HTTP_P2 -I<wasi>/include -Igen \
+    main.cpp gen/webcpp_wasi_http.o gen/webcpp_wasi_http_component_type.o -o hello.wasm
+----
+
+wasmtime serves it, and answers the requests of the complete example as
+its transcript shows:
+
+[source,bash]
+----
+wasmtime serve -S cli --addr 127.0.0.1:8080 hello.wasm
+----
+
+These commands were run as written with wasi-sdk 34, wit-bindgen 0.62.0 and
+wasmtime 47.0.3, and are run again when one of them moves.

@@ -1,0 +1,5 @@
+GET /v1/items
+GET /v1/items/2
+GET /v1/items/9
+GET /v1/items/2x
+DELETE /v1/items/2

@@ -1,0 +1,47 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#wasi-flow]
+== How a request flows
+
+The host calls the handler the program exports once per request, and the
+handler does the same on both versions, in this order:
+
+[listing]
+----
+host (wasmtime serve)
+  calls the exported handler          exports_wasi_http_incoming_handler_handle (wasip2)
+                                      exports_wasi_http_handler_handle (wasip3)
+    reads the method and the target
+    calls the main                    http_main(method, target) -> response
+    frees the request
+    sends the status and the content-type
+    writes the body, every byte       wasip2: in chunks of at most 4096 bytes
+                                      wasip3: until the stream has taken it all
+----
+
+. *It reads the method and the target.* A method of HTTP arrives as an
+  enumerator and becomes its name; an extension method arrives as a string,
+  which the main sees as it was sent. The target is the request's path and
+  query, `"/"` when it has none.
+. *It calls the main,* with two views of the request.
+. *It frees the request,* only once the main has returned
+  (<<wasi-invariant-3,guarantee 3>>).
+. *It sends the response's head:* the status, and the `content-type` header
+  when `content_type` is not empty, and no other header
+  (<<wasi-invariant-7,guarantee 7>>).
+. *It writes the body, every byte* (<<wasi-invariant-4,guarantee 4>>). On
+  wasip2, `blocking-write-and-flush` takes at most 4096 bytes a call, so the
+  handler writes in chunks of that size, then finishes the body. On wasip3,
+  it writes to the body's stream until the stream has taken every byte,
+  waiting inside the task when a write blocks, then resolves the trailers
+  future with no trailers.
+
+A failure the host reports before the response is sent answers an internal
+error. Once it is sent, nothing can be taken back: a body not written whole
+is reported the way each version defines, on wasip2 by dropping the body
+without finishing it, and on wasip3 by resolving the trailers future with an
+internal error (<<wasi-invariant-6,guarantee 6>>).

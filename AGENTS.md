@@ -68,6 +68,14 @@ holds only what is specific to wasi.
   the README in the same commit. The hand-written commands of its complete
   example and of its section on wasip3 were run as written, and are run again
   when wasi-sdk, wit-bindgen or wasmtime moves.
+- **The page.** `doc/wasi.adoc` and its chapters, built by `b2 libs/wasi/doc`.
+  Its chapter "Building for WASI with Boost" shows the superproject's own
+  configuration, included by tag through `{webcpp-root}`: the toolsets of
+  `tools/ci/wasi-sdk.jam` and the regions `wasi-os`, `wasi-target`,
+  `wasip2-exceptions` and `wasip3-exceptions` of the Jamroot. doc-check
+  accepts only a tagged region of a file the superproject tracks, so a region
+  renamed there fails this page's build. Its examples `boost_json_command`
+  and `boost_json_http` link `/webcpp//boost_json`.
 - **clang-format.** `.clang-format` inherits the superproject's and names
   the two macros of the main as a block's begin and end, so that the main's
   body is indented as a function's.
