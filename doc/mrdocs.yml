@@ -1,0 +1,13 @@
+# Copyright (c) 2026 WebCpp.org
+#
+# Distributed under the Boost Software License, Version 1.0. (See
+# accompanying file LICENSE_1_0.txt or copy at
+# https://www.boost.org/LICENSE_1_0.txt)
+#
+# What wasi's reference adds to tools/doc/mrdocs.yml.in, the settings every
+# library's reference shares: only keys of how the reference is presented.
+
+# A class lists its members in the order it declares them: response's are
+# status, content type and body, the order of an HTTP response and of the
+# designated initializer that builds one.
+sort-members: false
