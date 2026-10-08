@@ -189,7 +189,7 @@ struct of three members:
 | Member | Type | What it holds |
 | --- | --- | --- |
 | `status` | `unsigned`, 200 by default | the status, sent as it is within 100 to 599; outside them the handler answers an internal error instead, which wasmtime 47 sends as its own `500 Internal Server Error` |
-| `content_type` | `std::string_view`, empty by default | the `content-type` header, sent only when not empty; read after your main returns, so it views a literal, like `"application/json"`, or the method or the target, never a string of your main's own |
+| `content_type` | `std::string_view`, empty by default | the `content-type` header, sent only when not empty; read after your main returns, so it views a literal, like `"application/json"`, or the method or the target, never a string of your main's own; one the host refuses, with a CR, an LF or a NUL for example, answers an internal error instead |
 | `body` | `std::string`, empty by default | the body, sent whole, however long |
 
 No other header is sent.
@@ -246,6 +246,7 @@ host (wasmtime serve)
        ├─ reads the method and the target
        ├─ calls your main                  http_main(method, target) -> response
        ├─ answers an internal error instead, for a status outside 100-599
+       │  or a content type the host refuses
        ├─ sends the status and the content-type
        ├─ writes the body, every byte      wasip2: chunks of 4096; wasip3: until the stream took all
        └─ frees the request

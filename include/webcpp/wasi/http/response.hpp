@@ -44,6 +44,10 @@ struct response {
     /**
      The value of the `content-type` header, which is sent only when it is not empty.
 
+     A value the host refuses as a field value, one that holds a CR, an LF or
+     a NUL for example, is not dropped: the handler answers an internal error
+     instead of the response.
+
      @note It is read after the main has returned, so it views what outlives
      the main: a string literal, such as `"application/json"`, or the method
      or the target the main was given, which the handler frees only once the

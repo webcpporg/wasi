@@ -19,7 +19,7 @@ host (wasmtime serve)
     reads the method and the target
     calls the main
       http_main(method, target) -> response
-    refuses a status outside 100-599
+    refuses a status or a content type it cannot send
     sends the status and the content-type
     writes the body, every byte
       wasip2: in chunks of at most 4096 bytes
@@ -32,8 +32,9 @@ host (wasmtime serve)
   which the main sees as it was sent. The target is the request's path and
   query, `"/"` when it has none.
 . *It calls the main,* with two views of the request.
-. *It refuses what it cannot send as written:* a status outside 100 to 599
-  answers an internal error, and nothing of the main's response is sent
+. *It refuses what it cannot send as written:* a status outside 100 to 599,
+  or a content type the host refuses as a field value, answers an internal
+  error, and nothing of the main's response is sent
   (<<wasi-invariant-9,guarantee 9>>).
 . *It sends the response's head:* the status, and the `content-type` header
   when `content_type` is not empty, and no other header

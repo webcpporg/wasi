@@ -30,6 +30,7 @@ extern "C" {
 
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <string_view>
 
 namespace webcpp::wasi::http {
@@ -97,12 +98,14 @@ inline bool sendable(unsigned status) {
 
 /**
  Builds the response's headers: its content type when it has one, and
- nothing else.
+ nothing else; none when the host refuses the content type as a field value.
 
- @note append's result is not read: it fails only on a malformed or forbidden
- header, and the name here is a literal.
+ @note The name is a literal the host accepts, so a refusal is the value's,
+ one that holds a CR, an LF or a NUL, for example. It is refused as an
+ internal error rather than dropped, so that no response is sent other than
+ the main wrote it (doc: #wasi-invariant-9).
 */
-inline wasi_http_types_own_fields_t headers_of(const response& answer) {
+inline std::optional<wasi_http_types_own_fields_t> headers_of(const response& answer) {
     const wasi_http_types_own_fields_t headers = wasi_http_types_constructor_fields();
     if (answer.content_type.empty()) {
         return headers;
@@ -114,8 +117,11 @@ inline wasi_http_types_own_fields_t headers_of(const response& answer) {
         .len = answer.content_type.size(),
     };
     wasi_http_types_header_error_t header_error{};
-    static_cast<void>(wasi_http_types_method_fields_append(wasi_http_types_borrow_fields(headers),
-                                                           &name, &value, &header_error));
+    if (!wasi_http_types_method_fields_append(wasi_http_types_borrow_fields(headers), &name, &value,
+                                              &header_error)) {
+        wasi_http_types_fields_drop_own(headers);
+        return std::nullopt;
+    }
     return headers;
 }
 
@@ -164,7 +170,7 @@ inline bool write_all(wasi_http_types_borrow_outgoing_body_t body, std::string_v
 
 /**
  Sends the answer: status and headers first, then the body; or an internal
- error, for a status wasi does not send.
+ error, for a status or a content type wasi cannot send as it is.
 
  @note Once the outparam is set nothing can be taken back: a body not written
  whole is dropped without finish, which wasi:http reports as a failed response.
@@ -175,8 +181,13 @@ inline void respond(exports_wasi_http_incoming_handler_own_response_outparam_t o
         refuse(out);
         return;
     }
+    const std::optional<wasi_http_types_own_fields_t> headers = headers_of(answer);
+    if (!headers) {
+        refuse(out);
+        return;
+    }
     const wasi_http_types_own_outgoing_response_t response =
-        wasi_http_types_constructor_outgoing_response(headers_of(answer));
+        wasi_http_types_constructor_outgoing_response(*headers);
     // Sets the status; the result is not read, because set-status-code fails
     // only outside 100-599, which the guard above refused.
     static_cast<void>(wasi_http_types_method_outgoing_response_set_status_code(
@@ -323,10 +334,15 @@ inline void refuse() {
 /**
  Sends the answer: returns the response, with its status and headers, from
  the handler, then streams its body and resolves its trailers; or returns an
- internal error, for a status wasi does not send.
+ internal error, for a status or a content type wasi cannot send as it is.
 */
 inline void respond(const response& answer) {
     if (!sendable(answer.status)) {
+        refuse();
+        return;
+    }
+    const std::optional<wasi_http_types_own_fields_t> headers = headers_of(answer);
+    if (!headers) {
         refuse();
         return;
     }
@@ -336,7 +352,7 @@ inline void respond(const response& answer) {
     const wasi_http_types_future_result_option_own_trailers_error_code_t trailers =
         wasi_http_types_future_result_option_own_trailers_error_code_new(&trailers_writer);
     wasi_http_types_tuple2_own_response_future_result_void_error_code_t made{};
-    wasi_http_types_static_response_new(headers_of(answer), &contents, trailers, &made);
+    wasi_http_types_static_response_new(*headers, &contents, trailers, &made);
     // Drops the future of whether the host sent the response, unread: the guest
     // could change nothing about a response already sent.
     wasi_http_types_future_result_void_error_code_drop_readable(made.f1);
