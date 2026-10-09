@@ -159,9 +159,9 @@ lanes `http`, the others with the test and example directories. From the
 root of a webcpp checkout:
 
 `b2 libs/wasi/test libs/wasi/example toolset=clang-wasip2 testing.launcher=wasmtime`::
-Builds and runs, for wasm32-wasip2 and without exceptions, every test that
+Builds and runs, for wasm32-wasip2 and with exceptions, every test that
 is not served, and the command, which wasmtime runs. `toolset=clang-wasip3`
-does the same for wasm32-wasip3, with exceptions.
+does the same for wasm32-wasip3.
 
 `b2 libs/wasi/test//http libs/wasi/example//http toolset=clang-wasip2 testing.launcher=wasmtime`::
 Runs the lanes `http` of the tests and of the examples: builds the
