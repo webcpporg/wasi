@@ -14,6 +14,7 @@ request, calls your main and writes the answer back. It covers WASI 0.2
 | `<webcpp/wasi.hpp>` | the whole library: it includes the entry point |
 | `<webcpp/wasi/http/entrypoint.hpp>` | the handler and the main's macros; it compiles only for wasip2 and wasip3 |
 | `<webcpp/wasi/http/response.hpp>` | only the response, for code that needs no ABI; it also compiles natively |
+| `<webcpp/wasi/config.hpp>` | `WEBCPP_WASI_NO_EXCEPTIONS`, defined without exceptions or by your build; every header includes it first, and it compiles natively too |
 
 Requirements: C++20, wasi-sdk 34, wit-bindgen's C generator (0.62.0
 measured), the `wasi:http` WIT of your target, and a host such as wasmtime

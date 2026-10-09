@@ -16,6 +16,8 @@
 #ifndef WEBCPP_WASI_HTTP_RESPONSE_HPP
 #define WEBCPP_WASI_HTTP_RESPONSE_HPP
 
+#include <webcpp/wasi/config.hpp>
+
 #include <string>
 #include <string_view>
 

@@ -119,6 +119,17 @@ which a broken text sets, and reads the value with `if_object` and
 and `at` would report it by throwing, which in such a build ends the
 program.
 
+`<webcpp/wasi/config.hpp>`, which every public header of wasi includes
+first, defines `WEBCPP_WASI_NO_EXCEPTIONS` when the build has no exceptions,
+and a program may define it itself to turn wasi's exceptions off in a build
+that has them, as Boost.Asio's `BOOST_ASIO_NO_EXCEPTIONS` does. wasi raises
+no exception of its own, so the macro changes nothing in it: it exists so
+that a program can set it for every webcpp library alike. The tests `config`
+and `config_developer_defined` check both ways it is defined, natively and
+on both targets, and the lint refuses a `throw` in a public header, even in
+a template nothing instantiates: an exception goes through
+`boost::throw_exception`.
+
 [#wasi-boost-json]
 === Boost.JSON
 
