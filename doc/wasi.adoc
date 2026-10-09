@@ -58,3 +58,5 @@ wasip2 and `WEBCPP_WASI_HTTP_P2`, so the macro `WEBCPP_WASI_HTTP_EXPORTS`
 shows the handler of wasip2; <<wasi-wasip3>> says what differs on wasip3.
 
 include::{reference}[leveloffset=+1]
+
+include::changelog.adoc[]
