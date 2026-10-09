@@ -88,8 +88,8 @@ Clang emits the standard encoding, `exnref`, which wasmtime runs, and serves
 in a component, with no flag of its own.
 
 A program that uses exceptions needs a host that runs that encoding, which
-WebAssembly 3.0 made standard: wasmtime 47 or later, or an older one given
-`-W exceptions=y`; jco, whose `jco transpile` is given
+WebAssembly 3.0 made standard: wasmtime 47 or later, or wasmtime 37 to 46
+given `-W exceptions=y`; jco, whose `jco transpile` is given
 `--bindgen-enable-wasm-exnref`; or another engine of WebAssembly 3.0.
 
 wasi's handler catches nothing: an exception that escapes the main traps the
