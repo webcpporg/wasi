@@ -40,9 +40,9 @@ holds only what is specific to wasi.
   built with exceptions on wasip2 and wasip3, as the superproject's Jamroot
   builds any; wasmtime serves both with no flag beyond those of
   `webcpp.serve`. An exception that escapes the main on either traps the
-  instance, and wasmtime 47 answers its own HTML 500: the
-  page and the main's Doc Comment say so, and whether the handler should
-  catch it is the owner's decision, not a change to make in passing.
+  instance, and wasmtime 47 answers its own HTML 500 and keeps serving: the
+  page and the main's Doc Comment say so. The handler catches nothing, by
+  the owner's decision; the host answers.
 - **`config.hpp` comes first.** Every public header includes
   `<webcpp/wasi/config.hpp>` first, which defines `WEBCPP_WASI_NO_EXCEPTIONS`
   without exceptions or when a developer does; a header raises only through
