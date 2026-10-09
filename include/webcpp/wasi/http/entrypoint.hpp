@@ -18,6 +18,8 @@
 #ifndef WEBCPP_WASI_HTTP_ENTRYPOINT_HPP
 #define WEBCPP_WASI_HTTP_ENTRYPOINT_HPP
 
+#include <webcpp/wasi/config.hpp>
+
 #if defined(WEBCPP_WASI_HTTP_P2) == defined(WEBCPP_WASI_HTTP_P3)
 #error "define exactly one of WEBCPP_WASI_HTTP_P2 and WEBCPP_WASI_HTTP_P3"
 #endif

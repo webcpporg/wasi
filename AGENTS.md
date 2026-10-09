@@ -43,6 +43,10 @@ holds only what is specific to wasi.
   instance, and wasmtime 47 answers its own HTML 500: the
   page and the main's Doc Comment say so, and whether the handler should
   catch it is the owner's decision, not a change to make in passing.
+- **`config.hpp` comes first.** Every public header includes
+  `<webcpp/wasi/config.hpp>` first, which defines `WEBCPP_WASI_NO_EXCEPTIONS`
+  without exceptions or when a developer does; a header raises only through
+  `boost::throw_exception` (the lint's bare throw).
 - **The tools,** each looked for when a target needs it, and the build stops
   naming it and every place it looked when it is not there: wit-bindgen
   0.62.0 (`-sWIT_BINDGEN=<path>`, else `.local/wit-bindgen/wit-bindgen`,

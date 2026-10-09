@@ -10,6 +10,8 @@
 #ifndef WEBCPP_WASI_HPP
 #define WEBCPP_WASI_HPP
 
+#include <webcpp/wasi/config.hpp>
+
 #include <webcpp/wasi/http/entrypoint.hpp>
 
 #endif  // WEBCPP_WASI_HPP

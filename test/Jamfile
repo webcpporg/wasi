@@ -12,11 +12,20 @@ webcpp.targets wasip2 wasip3 ;
 
 # Each public header compiles alone: the entry point, and the convenience
 # header that includes it, only on wasip2 and wasip3, with the bindings and
-# the macro of each; the response, which includes nothing of the component
-# ABI, natively too.
+# the macro of each; the response and the configuration, which include
+# nothing of the component ABI, natively too.
 webcpp.headers-alone wasi : ../include : wasi.hpp wasi/http/entrypoint.hpp
   : <library>/webcpp/wasi//http ;
-webcpp.headers-alone wasi : ../include : wasi/http/response.hpp : : native wasip2 wasip3 ;
+webcpp.headers-alone wasi : ../include : wasi/config.hpp wasi/http/response.hpp
+  : : native wasip2 wasip3 ;
+
+# config.hpp defines WEBCPP_WASI_NO_EXCEPTIONS exactly when the build has no
+# exceptions, and keeps it when a developer defines it in a build that has
+# them, natively and on both WASI targets.
+webcpp.compile config : config_test.cpp : : native wasip2 wasip3 ;
+webcpp.compile config_developer_defined : config_test.cpp
+  : <define>WEBCPP_WASI_NO_EXCEPTIONS <define>WEBCPP_TEST_WASI_DEVELOPER_DEFINED
+  : native wasip2 wasip3 ;
 
 # The response's defaults, and that it owns its body, natively and on both
 # WASI targets.
