@@ -18,14 +18,12 @@ of every version are on webcpp's index page.
 // tag::unreleased[]
 * Fixed a status outside 100-599 answering 200 OK; it now answers an
 internal error.
-* Fixed the handler reading the response's content type after freeing the
-request that held it.
+* Fixed a content type viewing the request's method or target not being
+sent.
 * Fixed a content type the host refused being dropped silently; it now
 answers an internal error.
-* Changed wasip2 to build with exceptions, as wasip3 already did.
 * Added the `WEBCPP_WASI_NO_EXCEPTIONS` configuration macro, defined
 automatically or by the developer.
-* Updated the documentation on wasmtime's version requirements, the by-hand
-build, and an exception escaping the main on wasip3.
-* Added a changelog, the page's last appendix, with each version's changes.
+* Updated the documentation: wasmtime's versions, the by-hand build, escaping
+exceptions and a changelog.
 // end::unreleased[]
