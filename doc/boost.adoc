@@ -66,48 +66,16 @@ A program built so runs with wasmtime, which b2 starts for a test or an
 example given `testing.launcher=wasmtime` on its command line, beside
 `toolset=clang-wasip2` or `toolset=clang-wasip3` (<<wasi-testing-targets>>).
 
-[#wasi-boost-exceptions-wasip2]
-=== No exceptions on wasip2
+[#wasi-boost-exceptions]
+=== Exceptions on wasip2 and wasip3
 
-Some WebAssembly hosts lack exception handling, so webcpp builds every
-program for wasip2 without exceptions. That is a policy of portability, not
-a limit of the toolchain, and the wasip2 lane is where webcpp proves that its
-libraries work without them. The Jamroot turns them off, and tells Boost:
-
-[listing]
-----
-include::{webcpp-root}/Jamroot[tag=wasip2-exceptions,indent=0]
-----
-
-`BOOST_NO_EXCEPTIONS` asks something of the program. Where Boost would
-throw, it calls `boost::throw_exception`, which its headers declare and
-leave to the program to define: a program built without exceptions that
-calls it, as Boost.System's `result` and Boost.JSON do, does not link
-without a definition. webcpp's
-https://github.com/webcpporg/webcpp/blob/main/tools/throw_exception.cpp[`tools/throw_exception.cpp`]
-defines both overloads: each prints what was thrown on the standard error,
-and aborts, since a throw in such a build is a defect, never a condition.
-webcpp's build links it into every program it builds without exceptions,
-on wasip2 and wherever a user asks for `exception-handling=off`. A program
-built by hand compiles with `-fno-exceptions -DBOOST_NO_EXCEPTIONS`, and
-compiles and links that file, or a definition of its own.
-
-So a program meant for wasip2 asks Boost for errors as values. The command
-of <<wasi-boost-json>> parses with an `error_code`, which a broken text
-sets, and reads the value with `if_object` and `if_contains`, which answer
-a null pointer for what is not there; `as_object` and `at` would report it
-by throwing, which here ends the program.
-
-[#wasi-boost-exceptions-wasip3]
-=== Exceptions on wasip3
-
-On wasip3 a program may use exceptions, as natively, encoded as
-WebAssembly's exception handling, and webcpp builds every program for
-wasip3 with them on:
+A program may use exceptions on wasip2 and wasip3, as natively: whether it
+does is its developer's choice, and webcpp builds every program for both
+with them on, encoded as WebAssembly's exception handling:
 
 [listing]
 ----
-include::{webcpp-root}/Jamroot[tag=wasip3-exceptions,indent=0]
+include::{webcpp-root}/Jamroot[tag=wasi-exceptions,indent=0]
 ----
 
 `-fwasm-exceptions` encodes a throw and a catch as WebAssembly instructions,
@@ -119,10 +87,37 @@ that uses it, saying `legacy_exceptions feature required`. With the flag,
 Clang emits the standard encoding, `exnref`, which wasmtime runs, and serves
 in a component, with no flag of its own.
 
+A program that uses exceptions needs a host that runs that encoding, which
+WebAssembly 3.0 made standard: wasmtime 47 or later, or an older one given
+`-W exceptions=y`; jco, whose `jco transpile` is given
+`--bindgen-enable-wasm-exnref`; or another engine of WebAssembly 3.0.
+
 wasi's handler catches nothing: an exception that escapes the main traps the
 instance, and wasmtime 47 answers the client with its own
 `500 Internal Server Error` (<<wasi-main-rules>>). A main that may throw
 catches what it can answer itself.
+
+A user's build without exceptions, `exception-handling=off`, compiles with
+`-fno-exceptions` alone, under which Boost.Config defines
+`BOOST_NO_EXCEPTIONS`, and that asks something of the program. Where Boost
+would throw, it calls `boost::throw_exception`, which its headers declare
+and leave to the program to define: a program built without exceptions that
+calls it, as Boost.System's `result` and Boost.JSON do, does not link
+without a definition. webcpp's
+https://github.com/webcpporg/webcpp/blob/main/tools/throw_exception.cpp[`tools/throw_exception.cpp`]
+defines both overloads: each prints what was thrown on the standard error,
+and aborts, since a throw in such a build is a defect, never a condition.
+webcpp's build links it into every program a user builds with
+`exception-handling=off`, on any target. A program built by hand without
+exceptions compiles with `-fno-exceptions -DBOOST_NO_EXCEPTIONS`, and
+compiles and links that file, or a definition of its own.
+
+So a program that may be built without exceptions asks Boost for errors as
+values. The command of <<wasi-boost-json>> parses with an `error_code`,
+which a broken text sets, and reads the value with `if_object` and
+`if_contains`, which answer a null pointer for what is not there; `as_object`
+and `at` would report it by throwing, which in such a build ends the
+program.
 
 [#wasi-boost-json]
 === Boost.JSON

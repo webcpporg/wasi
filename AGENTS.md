@@ -37,10 +37,10 @@ holds only what is specific to wasi.
   asynchronously, waits for each write inside the task and always ends with
   `EXIT`: context slot 0 belongs to wasi-libc on wasip3, and using it trapped.
 - **Exceptions.** The headers throw, try and catch nothing. Every program is
-  built without exceptions on wasip2 and with them on wasip3, as the
-  superproject's Jamroot builds any; wasmtime serves both with no flag
-  beyond those of `webcpp.serve`. An exception that escapes the main on
-  wasip3 traps the instance, and wasmtime 47 answers its own HTML 500: the
+  built with exceptions on wasip2 and wasip3, as the superproject's Jamroot
+  builds any; wasmtime serves both with no flag beyond those of
+  `webcpp.serve`. An exception that escapes the main on either traps the
+  instance, and wasmtime 47 answers its own HTML 500: the
   page and the main's Doc Comment say so, and whether the handler should
   catch it is the owner's decision, not a change to make in passing.
 - **The tools,** each looked for when a target needs it, and the build stops
@@ -93,8 +93,7 @@ holds only what is specific to wasi.
   Its chapter "Building for WASI with Boost" shows the superproject's own
   configuration, included by tag through `{webcpp-root}`: the regions
   `wasi-sdk`, `wasip2` and `wasip3` of `tools/ci/wasi-sdk.jam`, and
-  `wasi-os`, `wasi-target`, `wasip2-exceptions` and `wasip3-exceptions` of
-  the Jamroot. doc-check
+  `wasi-os`, `wasi-target` and `wasi-exceptions` of the Jamroot. doc-check
   accepts only a tagged region of a file the superproject tracks, so a region
   renamed there fails this page's build. Its examples `boost_json_command`
   and `boost_json_http` link `/webcpp//boost_json`.

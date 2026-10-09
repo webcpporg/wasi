@@ -19,9 +19,9 @@ Requirements: C++20, wasi-sdk 34, wit-bindgen's C generator (0.62.0
 measured), the `wasi:http` WIT of your target, and a host such as wasmtime
 (47.0.3 measured). The headers include only the standard library and the
 bindings wit-bindgen writes. The helper needs neither exceptions nor RTTI
-and imposes neither: webcpp builds it without exceptions on wasip2 and with
-them on wasip3, where an exception that escapes your main traps the instance
-(see [Your main](#your-main)).
+and imposes neither: webcpp builds it with exceptions on wasip2 and wasip3,
+where an exception that escapes your main traps the instance (see
+[Your main](#your-main)).
 
 ## Contents
 
@@ -89,10 +89,11 @@ repository's:
 
 "$WASI_SDK/bin/clang" --target=wasm32-wasip2 \
     -c gen/webcpp_wasi_http.c -o gen/webcpp_wasi_http.o -Igen
-"$WASI_SDK/bin/clang++" --target=wasm32-wasip2 -std=c++20 -fno-exceptions \
+"$WASI_SDK/bin/clang++" --target=wasm32-wasip2 -std=c++20 \
+    -fwasm-exceptions -mllvm -wasm-use-legacy-eh=false \
     -mexec-model=reactor -DWEBCPP_WASI_HTTP_P2 -I"$WASI/include" -Igen \
     main.cpp gen/webcpp_wasi_http.o gen/webcpp_wasi_http_component_type.o \
-    -o hello.wasm
+    -fwasm-exceptions -lunwind -o hello.wasm
 ```
 
 Serve it:
@@ -172,11 +173,11 @@ the response: the response's content type may view them, and you copy what
 you keep beyond the request. To split the target, parse it with a URL
 library, Boost.URL's `parse_origin_form` for example.
 
-The handler catches nothing. On wasip3, where webcpp builds with exceptions,
-an exception that escapes your main traps the instance: wasmtime 47 prints
-the trap on its standard error, `thrown Wasm exception`, and answers the
-client with its own `500 Internal Server Error`, an HTML page, then serves
-the requests after it. On wasip2 webcpp builds without exceptions.
+The handler catches nothing. On wasip2 and wasip3, where webcpp builds a
+program with exceptions, an exception that escapes your main traps the
+instance: wasmtime 47 prints the trap on its standard error, `thrown Wasm
+exception`, and answers the client with its own `500 Internal Server Error`,
+an HTML page, then serves the requests after it.
 
 The main's body is inside a function of `namespace webcpp::wasi::http`: name
 your own code with its full namespace, or with a namespace alias declared at
@@ -238,11 +239,12 @@ and serves it on wasip3:
   with `-pthread`, and the program with `-DWEBCPP_WASI_HTTP_P3`;
 - wasmtime serves it with `-S cli,p3 -W component-model-async`.
 
-webcpp compiles a wasip3 program with exceptions on,
+webcpp compiles a program for wasip2 or wasip3 with exceptions on,
 `-fwasm-exceptions -mllvm -wasm-use-legacy-eh=false`, and links it with
-`-fwasm-exceptions -lunwind`; wasmtime serves it with the flags above and no
-other. Built with `-fno-exceptions` in their place, as the commands of the
-complete example do for wasip2, the component answers the same.
+`-fwasm-exceptions -lunwind`, and the commands of both versions here do the
+same; wasmtime serves it with the flags above and no other. Built with
+`-fno-exceptions` in their place, the component answers the same: webcpp
+measured that once, by hand, on wasip3.
 
 The handler is lifted asynchronously, waits for every write inside the task,
 and always ends with `EXIT`.

@@ -44,10 +44,11 @@ p2)
 
 "$WASI_SDK/bin/clang" --target=wasm32-wasip2 \
     -c gen/webcpp_wasi_http.c -o gen/webcpp_wasi_http.o -Igen
-"$WASI_SDK/bin/clang++" --target=wasm32-wasip2 -std=c++20 -fno-exceptions \
+"$WASI_SDK/bin/clang++" --target=wasm32-wasip2 -std=c++20 \
+    -fwasm-exceptions -mllvm -wasm-use-legacy-eh=false \
     -mexec-model=reactor -DWEBCPP_WASI_HTTP_P2 -I"$WASI/include" -Igen \
     main.cpp gen/webcpp_wasi_http.o gen/webcpp_wasi_http_component_type.o \
-    -o hello.wasm
+    -fwasm-exceptions -lunwind -o hello.wasm
 # end::p2[]
     ;;
 p3)

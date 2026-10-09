@@ -77,9 +77,9 @@ bindings are generated: <<wasi-build-by-hand>> shows the commands.
 * *Nothing else.* The headers include only the standard library and the
   bindings wit-bindgen writes, and need no Boost. They throw, try and catch
   nothing, and use no RTTI: wasi needs neither exceptions nor RTTI, and
-  imposes neither. webcpp builds every program of it without exceptions on
-  wasip2 and with them on wasip3 (<<wasi-boost>>), where an exception that
-  escapes the main traps the instance (<<wasi-main-rules>>).
+  imposes neither. webcpp builds every program of it with exceptions on
+  wasip2 and wasip3 (<<wasi-boost>>), where an exception that escapes the
+  main traps the instance (<<wasi-main-rules>>).
 
 [#wasi-reading]
 === Reading this page

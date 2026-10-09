@@ -103,7 +103,8 @@ include::{examples}/by_hand/p2/wit/world.wit[tag=world]
 with `wit/deps/` linked to the `wasi:http` 0.2.12 WIT, the `wit/deps`
 directory of the Rust crate `wasip2` 1.0.4. wit-bindgen generates the
 bindings with the world renamed `webcpp_wasi_http`; then wasi-sdk's `clang`
-compiles them as C, and its `clang++` compiles and links a reactor:
+compiles them as C, and its `clang++` compiles and links a reactor, with
+exceptions on, as webcpp builds every program (<<wasi-boost-exceptions>>):
 
 [source,bash]
 ----
