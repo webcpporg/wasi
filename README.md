@@ -299,7 +299,7 @@ Natively, only what compiles without the component ABI is built.
 ## Documentation
 
 wasi's page, with its API reference, is published at
-<https://webcpporg.github.io/webcpp/libs/wasi/>; `b2 libs/wasi/doc` builds it
+<https://webcpporg.github.io/libs/wasi/>; `b2 libs/wasi/doc` builds it
 into `doc/html/index.html`.
 
 ## License
