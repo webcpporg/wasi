@@ -6,9 +6,11 @@
 
 // <webcpp/wasi/config.hpp> defines WEBCPP_WASI_NO_EXCEPTIONS exactly when the
 // build has no exceptions, and keeps the developer's own definition in a build
-// that has them. test/Jamfile builds this file twice: as the build asks, and
-// with the macro defined as a developer defines it, on the command line, which
-// WEBCPP_TEST_WASI_DEVELOPER_DEFINED tells this file.
+// that has them. test/Jamfile builds this file three times: as the build asks;
+// with WEBCPP_NO_EXCEPTIONS defined as a developer defines it for every webcpp
+// library, which WEBCPP_TEST_WASI_ALL_OFF tells this file; and with the macro
+// itself defined as a developer defines it for wasi alone, on the command line,
+// which WEBCPP_TEST_WASI_DEVELOPER_DEFINED tells this file.
 
 #include <webcpp/wasi/config.hpp>
 
@@ -20,7 +22,11 @@
 
 #include <boost/config.hpp>
 
-#ifdef WEBCPP_TEST_WASI_DEVELOPER_DEFINED
+#ifdef WEBCPP_TEST_WASI_ALL_OFF
+#ifndef WEBCPP_WASI_NO_EXCEPTIONS
+#error "WEBCPP_NO_EXCEPTIONS does not define WEBCPP_WASI_NO_EXCEPTIONS"
+#endif
+#elif defined(WEBCPP_TEST_WASI_DEVELOPER_DEFINED)
 #ifndef WEBCPP_WASI_NO_EXCEPTIONS
 #error "config.hpp drops WEBCPP_WASI_NO_EXCEPTIONS, which the developer defined"
 #endif

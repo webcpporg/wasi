@@ -26,4 +26,6 @@ answers an internal error.
 automatically or by the developer.
 * Updated the documentation: wasmtime's versions, the by-hand build, escaping
 exceptions and a changelog.
+* Added `WEBCPP_NO_EXCEPTIONS`, which disables wasi's exceptions with every
+webcpp library's.
 // end::unreleased[]

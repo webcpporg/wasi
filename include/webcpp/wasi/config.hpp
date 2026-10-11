@@ -19,8 +19,9 @@
 #ifdef __MRDOCS__
 /**
  Defined when wasi is built without exceptions: automatically when the
- compiler has none (where Boost.Config defines `BOOST_NO_EXCEPTIONS`), or by
- the developer to disable them in a build that has them.
+ compiler has none (where Boost.Config defines `BOOST_NO_EXCEPTIONS`), when the
+ developer defines `WEBCPP_NO_EXCEPTIONS` for every webcpp library, or when the
+ developer defines it alone, to disable wasi's in a build that has them.
 
  wasi raises no exception of its own, and its handler catches none, so the
  macro changes nothing in it. It is provided so that a program can set it for
@@ -34,12 +35,15 @@
 #undef WEBCPP_WASI_NO_EXCEPTIONS
 #endif
 
-// wasi includes nothing of Boost, so it tells a build without exceptions as
-// Boost.Config does, by the compiler's own macros: __cpp_exceptions, which Clang
-// and GCC define with exceptions, and _CPPUNWIND, MSVC's. BOOST_NO_EXCEPTIONS
-// counts too, defined by the build or by Boost.Config included before.
-#if !defined(WEBCPP_WASI_NO_EXCEPTIONS) && \
-    (defined(BOOST_NO_EXCEPTIONS) || !(defined(__cpp_exceptions) || defined(_CPPUNWIND)))
+// wasi includes nothing of Boost, nor, until its redesign, <webcpp/config.hpp>,
+// which includes Boost.Config: it reads the developer's WEBCPP_NO_EXCEPTIONS
+// itself, and tells a build without exceptions as Boost.Config does, by the
+// compiler's own macros: __cpp_exceptions, which Clang and GCC define with
+// exceptions, and _CPPUNWIND, MSVC's. BOOST_NO_EXCEPTIONS counts too, defined by
+// the build or by Boost.Config included before.
+#if !defined(WEBCPP_WASI_NO_EXCEPTIONS) &&                            \
+    (defined(WEBCPP_NO_EXCEPTIONS) || defined(BOOST_NO_EXCEPTIONS) || \
+     !(defined(__cpp_exceptions) || defined(_CPPUNWIND)))
 #define WEBCPP_WASI_NO_EXCEPTIONS
 #endif
 

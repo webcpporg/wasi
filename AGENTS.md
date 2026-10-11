@@ -45,7 +45,11 @@ holds only what is specific to wasi.
   the owner's decision; the host answers.
 - **`config.hpp` comes first.** Every public header includes
   `<webcpp/wasi/config.hpp>` first, which defines `WEBCPP_WASI_NO_EXCEPTIONS`
-  without exceptions or when a developer does; a header raises only through
+  without exceptions, when a developer defines `WEBCPP_NO_EXCEPTIONS` for every
+  webcpp library, or when a developer defines it alone; it includes nothing, so
+  it reads `WEBCPP_NO_EXCEPTIONS` itself until wasi's redesign includes
+  `<webcpp/config.hpp>`, and the tests `config`, `config_developer_defined` and
+  `config_all_off` check the three ways. A header raises only through
   `boost::throw_exception` (the lint's bare throw).
 - **The tools,** each looked for when a target needs it, and the build stops
   naming it and every place it looked when it is not there: wit-bindgen
