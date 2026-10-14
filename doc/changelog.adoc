@@ -16,6 +16,12 @@ of every version are on webcpp's index page.
 === Unreleased
 
 // tag::unreleased[]
+// end::unreleased[]
+
+[#wasi-changelog-0-1-0]
+=== webcpp 0.1.0
+
+// tag::0.1.0[]
 * Fixed a status outside 100-599 answering 200 OK; it now answers an
 internal error.
 * Fixed a content type viewing the request's method or target not being
@@ -28,4 +34,4 @@ automatically or by the developer.
 exceptions and a changelog.
 * Added `WEBCPP_NO_EXCEPTIONS`, which disables wasi's exceptions with every
 webcpp library's.
-// end::unreleased[]
+// end::0.1.0[]
