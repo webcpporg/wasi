@@ -7,11 +7,10 @@
 [#wasi-limits]
 == Limits
 
-The handler hands the main only the method and the target. It reads no
+The original main-macro handler hands the main only the method and the target. It reads no
 request header and no request body, and sends no response header but
-`content-type`. A main that needs a request's body or its headers, or to set
-other headers, waits for the handler to grow: today it cannot be written with
-wasi.
+`content-type`. Use the <<wasi-host-messages,complete host-message API>> for a request body,
+additional fields, trailers or an outgoing host request.
 
 [#wasi-limits-allocation]
 === What it allocates

@@ -40,6 +40,8 @@ include::wasip3.adoc[]
 
 include::flow.adoc[]
 
+include::messages.adoc[]
+
 include::limits.adoc[]
 
 include::guarantees.adoc[]

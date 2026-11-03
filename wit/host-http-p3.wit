@@ -1,0 +1,14 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+// Incoming and outgoing host HTTP, independently of guest sockets.
+package webcpp:wasi-http;
+
+world http {
+  import wasi:http/client@0.3.0;
+  import wasi:clocks/monotonic-clock@0.3.0;
+  export wasi:http/handler@0.3.0;
+}

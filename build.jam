@@ -28,3 +28,13 @@ alias http-bindings : http-bindings-p2 http-bindings-p3 ;
 alias http : : : : <library>wasi <library>http-bindings
   <toolset>clang-wasip2:<define>WEBCPP_WASI_HTTP_P2
   <toolset>clang-wasip3:<define>WEBCPP_WASI_HTTP_P3 ;
+
+# Complete host messages use the host client, never a guest socket reactor.
+webcpp.wit-bindings host-http-bindings-p2 : wit/host-http-p2.wit : http : webcpp_wasi_http : p2 ;
+webcpp.wit-bindings host-http-bindings-p3 : wit/host-http-p3.wit : http : webcpp_wasi_http : p3
+  : --async "wasi:http/handler@0.3.0#handle" --async "wasi:http/client@0.3.0#send"
+    --async "wasi:clocks/monotonic-clock@0.3.0#wait-until" ;
+alias host-http-bindings : host-http-bindings-p2 host-http-bindings-p3 ;
+alias host-http : : : : <library>wasi <library>host-http-bindings
+  <toolset>clang-wasip2:<define>WEBCPP_WASI_HTTP_P2
+  <toolset>clang-wasip3:<define>WEBCPP_WASI_HTTP_P3 ;

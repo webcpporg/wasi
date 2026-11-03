@@ -1,0 +1,84 @@
+// Copyright (c) 2026 WebCpp.org
+//
+// Distributed under the Boost Software License, Version 1.0. (See
+// accompanying file LICENSE_1_0.txt or copy at
+// https://www.boost.org/LICENSE_1_0.txt)
+
+[#wasi-host-messages]
+== Complete host messages and streams
+
+Select `/webcpp/wasi//host-http` and include
+`<webcpp/wasi/http/host.hpp>` for incoming and outgoing HTTP with exposed
+fields, bodies and trailers. This profile imports `wasi:http/outgoing-handler`
+on P2 and `wasi:http/client` on P3, as well as the monotonic clock used for
+transfer deadlines. It does not require a guest TCP reactor or guest TLS.
+The existing `/webcpp/wasi//http` profile and main macros remain available.
+
+`incoming_request` owns the host request. Read `method()`, `target()`,
+`authority()` and `headers()` before `consume(error)`. A `body_reader` reads
+into caller-owned spans, enforces `transfer_options::body_limit`, and reports
+EOF separately from successful completion. After EOF, call `finish` to
+check the completion result and visit the trailers. On P2 the request or
+response owner must outlive its body reader. On P3 consuming the body moves
+the request or response and retains its completion future in the reader.
+
+`commit_response` commits status and fields once and returns a
+`body_writer`. Write partial spans with `write_some`, or a complete span
+with `write`, then call `finish` with optional trailers. Dropping a writer
+before finishing fails the remaining body. It cannot replace an already
+committed response. P3 abandonment resolves the mandatory trailers future
+with an error before releasing the writer; simply dropping that writer
+would trap in the component ABI.
+
+`outgoing_exchange::start` takes the scheme, authority, method, path and
+fields, starts the host operation and returns a request body writer. Finish
+that writer before `receive` waits for response headers. The returned
+`incoming_response` provides its status, fields and body. The host owns
+connection reuse, DNS and HTTPS trust. Invalid or forbidden fields return
+an error; the adapter does not silently switch transports or discard them.
+`message_error` retains the pinned interface's host error discriminant.
+
+The operations above suspend inside the current component task. They are not an
+Asio completion-token interface. A transfer can use an absolute monotonic
+deadline or a cancellation predicate. Cancellation is checked between
+chunks and while waiting, at intervals of at most ten milliseconds, except
+when the host itself blocks inside an imported operation. The adapter does
+not allocate {cpp} operation state. Canonical ABI strings and lists still use
+the generated bindings' `cabi_realloc`; caller-owned bodies and fields use
+their own allocator.
+
+[#wasi-http-readiness]
+=== Nonblocking body and response operations
+
+`<webcpp/wasi/http/poll.hpp>` exposes `read_task`, `write_task` and
+`response_task`. Each poll performs one bounded readiness step and returns
+false while the host operation remains pending. The tasks own their body
+resources and, on P3, stable storage for pending stream and future results.
+A pending read or write borrows its payload span until a subsequent poll
+completes; the caller must keep that span unchanged and alive. Destroying
+a task cancels pending host access before releasing resources or storage.
+
+`read_task::finish` polls body completion and incoming trailers after EOF.
+`write_task::finish` polls outgoing trailers after the final content chunk.
+`response_task::poll` waits for response headers without blocking on the
+network. P2 future tasks retain their readiness subscriptions for the
+entire pending interval. These primitives allocate no {cpp} operation
+state and can be driven by a component event loop. Beast's explicit WASI
+asynchronous adapter builds completion-token operations over them.
+
+[#wasi-cli-streams]
+=== Standard CLI streams
+
+`<webcpp/wasi/stdio.hpp>` exposes `stdio_channel` over the pinned wasi-sdk
+CLI stream bindings on P2 and P3. Each operation returns a partial byte
+count and `ready`, `blocked`, `eof` or `failed`. The object owns the acquired
+stream resources; it neither creates sockets nor interprets protocol bytes.
+No caller buffer remains borrowed after a partial operation returns.
+
+The direct CLI adapter avoids wasi-sdk 34's stdio descriptors, which reject
+`fcntl(F_SETFL)` and always request blocking I/O. Wasmtime 50.0.1 can still
+block inside a standard-output host write when its OS pipe fills. Guest
+cancellation is then observed after the peer resumes draining. The tests
+bound that pause and resume draining concurrently; they do not claim that
+the guest can interrupt a blocking host import. Diagnostics belong on
+stderr, separately from the protocol on stdout.
