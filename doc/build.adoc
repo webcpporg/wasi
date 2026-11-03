@@ -34,8 +34,8 @@ version of WASI it is built for. A build provides it with these:
 
 | `-mexec-model=reactor` on the link
 | The program is a reactor: it exports a handler and has no C `main`.
-  wasmtime 50.0.1 also serves the same program linked without it, as a
-  command, but webcpp builds and tests reactors.
+  Historical tests with wasmtime 47 also served the same program linked
+  without it, as a command. Current webcpp builds and tests reactors.
 |===
 
 The host has its part too: `wasmtime serve` runs a component of wasi with

@@ -16,6 +16,7 @@ of every version are on webcpp's index page.
 === Unreleased
 
 // tag::unreleased[]
+* Updated Wasmtime instructions to 50.0.1, preserving historical measurements.
 // end::unreleased[]
 
 [#wasi-changelog-0-1-0]
