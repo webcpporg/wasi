@@ -12,6 +12,6 @@ webcpp.doc wasi : wasi.adoc ;
 # with the bindings of wasip2 and the macro of that version; the Doc Comments
 # of its wasip3 branch are checked too, with the bindings and the macro of
 # wasip3.
-webcpp.reference wasi : <library>/webcpp/wasi//http-bindings-p2-headers
+webcpp.reference wasi : <library>/webcpp/wasi//host-http-bindings-p2-headers
   <define>WEBCPP_WASI_HTTP_P2
-  : <library>/webcpp/wasi//http-bindings-p3-headers <define>WEBCPP_WASI_HTTP_P3 ;
+  : <library>/webcpp/wasi//host-http-bindings-p3-headers <define>WEBCPP_WASI_HTTP_P3 ;

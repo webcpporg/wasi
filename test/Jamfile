@@ -69,3 +69,9 @@ webcpp.compile-diagnostic neither_target_refused : neither_target_refused.cpp
   : <library>/webcpp/wasi//http-bindings ;
 webcpp.compile-diagnostic both_targets_refused : both_targets_refused.cpp
   : <library>/webcpp/wasi//http-bindings <define>WEBCPP_WASI_HTTP_P2 <define>WEBCPP_WASI_HTTP_P3 ;
+
+# Host-only message operations and direct CLI streams are checked with their
+# own bindings.
+webcpp.headers-alone wasi : ../include : wasi/http/message.hpp wasi/http/host.hpp wasi/http/poll.hpp
+  : <library>/webcpp/wasi//host-http ;
+webcpp.headers-alone wasi : ../include : wasi/stdio.hpp ;

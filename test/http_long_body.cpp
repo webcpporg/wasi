@@ -8,9 +8,9 @@
 // three times the most that one blocking-write-and-flush of wasip2 takes, and
 // a rest. The body is 192 numbered lines of 64 bytes, so a chunk of 4096 ends
 // at a line's end and a missing one shows as lines that are not there, and
-// then a last line of 17 bytes. On wasip3, wasmtime 47 takes the whole body in
-// one write, so the writer's loop never takes a second turn there: the test
-// holds that the body arrives whole, not that the loop goes on.
+// then a last line of 17 bytes. Historical wasip3 tests with wasmtime 47 took
+// the whole body in one write. This test checks that the body arrives whole,
+// not the number of iterations of the writer's loop.
 
 #include <webcpp/wasi/http/entrypoint.hpp>
 

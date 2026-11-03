@@ -22,6 +22,7 @@ of every version are on webcpp's index page.
 === webcpp 0.1.0
 
 // tag::0.1.0[]
+* Updated Wasmtime instructions to 50.0.1, preserving historical measurements.
 * Fixed a status outside 100-599 answering 200 OK; it now answers an
 internal error.
 * Fixed a content type viewing the request's method or target not being

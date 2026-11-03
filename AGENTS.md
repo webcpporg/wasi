@@ -43,7 +43,7 @@ holds only what is specific to wasi.
   built with exceptions on wasip2 and wasip3, as the superproject's Jamroot
   builds any; wasmtime serves both with no flag beyond those of
   `webcpp.serve`. An exception that escapes the main on either traps the
-  instance, and wasmtime 47 answers its own HTML 500 and keeps serving: the
+  instance, and wasmtime 50.0.1 answers its own HTML 500 and keeps serving: the
   page and the main's Doc Comment say so. The handler catches nothing, by
   the owner's decision; the host answers.
 - **`config.hpp` comes first.** Every public header includes
@@ -60,7 +60,7 @@ holds only what is specific to wasi.
   else `PATH`); the `wasi:http` WIT of WASI 0.2.12 and 0.3.0, the `wit/deps`
   directories of the Rust crates `wasip2` 1.0.4 and `wasip3` 0.9.0
   (`-sWASI_WIT_P2=<dir>` and `-sWASI_WIT_P3=<dir>`, else
-  `.local/wasi-wit/p2` and `.local/wasi-wit/p3`); wasmtime 47.0.3
+  `.local/wasi-wit/p2` and `.local/wasi-wit/p3`); wasmtime 50.0.1
   (`-sWASMTIME=<path>`, else `PATH`), looked for only when a served test
   runs. A native build needs none of them.
 - **Served tests.** A program that answers HTTP is tested with

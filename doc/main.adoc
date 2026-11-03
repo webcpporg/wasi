@@ -53,7 +53,7 @@ each request, and sends what it returns.
 * *An exception that escapes it is not caught.* The handler catches
   nothing, so on wasip2 and wasip3, where webcpp builds a program with
   exceptions, an exception that escapes the main traps the instance, and the
-  response is never sent. wasmtime 47 then prints the trap and its backtrace
+  response is never sent. wasmtime 50.0.1 then prints the trap and its backtrace
   on its standard error, `thrown Wasm exception` among them, and answers the
   client with its own `500 Internal Server Error`, the HTML page it answers
   an internal error with; it serves the requests after it.

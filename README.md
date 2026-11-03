@@ -18,7 +18,7 @@ request, calls your main and writes the answer back. It covers WASI 0.2
 
 Requirements: C++20, wasi-sdk 34, wit-bindgen's C generator (0.62.0
 measured), the `wasi:http` WIT of your target, and a host such as wasmtime
-(47.0.3 measured). The headers include only the standard library and the
+(50.0.1 measured). The headers include only the standard library and the
 bindings wit-bindgen writes. The helper needs neither exceptions nor RTTI
 and imposes neither: webcpp builds it with exceptions on wasip2 and wasip3,
 where an exception that escapes your main traps the instance (see
@@ -43,7 +43,7 @@ where an exception that escapes your main traps the instance (see
 A component that greets whoever calls it, built by hand with wasi-sdk. These
 are the exact files and commands, which webcpp's test `by_hand` runs in the
 lane `http` of `example/`, on wasip2 and on wasip3, with wasi-sdk 34,
-wit-bindgen 0.62.0 and wasmtime 47.0.3
+wit-bindgen 0.62.0 and wasmtime 50.0.1
 ([example/by_hand/build.sh](example/by_hand/build.sh)).
 
 `wit/world.wit`, the world your component exports (name it as you like):
@@ -176,7 +176,7 @@ library, Boost.URL's `parse_origin_form` for example.
 
 The handler catches nothing. On wasip2 and wasip3, where webcpp builds a
 program with exceptions, an exception that escapes your main traps the
-instance: wasmtime 47 prints the trap on its standard error, `thrown Wasm
+instance: wasmtime 50.0.1 prints the trap on its standard error, `thrown Wasm
 exception`, and answers the client with its own `500 Internal Server Error`,
 an HTML page, then serves the requests after it.
 
@@ -199,7 +199,7 @@ struct of three members:
 
 | Member | Type | What it holds |
 | --- | --- | --- |
-| `status` | `unsigned`, 200 by default | the status, sent as it is within 100 to 599; outside them the handler answers an internal error instead, which wasmtime 47 sends as its own `500 Internal Server Error` |
+| `status` | `unsigned`, 200 by default | the status, sent as it is within 100 to 599; outside them the handler answers an internal error instead, which wasmtime 50.0.1 sends as its own `500 Internal Server Error` |
 | `content_type` | `std::string_view`, empty by default | the `content-type` header, sent only when not empty; read after your main returns, so it views a literal, like `"application/json"`, or the method or the target, never a string of your main's own; one the host refuses, with a CR, an LF or a NUL for example, answers an internal error instead |
 | `body` | `std::string`, empty by default | the body, sent whole, however long |
 
@@ -220,7 +220,7 @@ itself:
 | the bindings generated with `--rename-world webcpp_wasi_http` | the header includes `webcpp_wasi_http.h` and uses the names wit-bindgen gives the world, `webcpp_wasi_http_string_t` and the like; renaming makes them the same in every project, whatever its world is called |
 | `webcpp_wasi_http.c` compiled as C for the target, and `webcpp_wasi_http_component_type.o`, linked | the glue that calls your handler, and the world's type information for the component linker |
 | the directory of the bindings on the include path | for `webcpp_wasi_http.h` |
-| `-mexec-model=reactor` on the link | the program is a reactor: it exports a handler and has no C `main`; wasmtime 47 also serves it linked as a command, but webcpp builds and tests reactors |
+| `-mexec-model=reactor` on the link | the program is a reactor: it exports a handler and has no C `main`; wasmtime 50.0.1 also serves it linked as a command, but webcpp builds and tests reactors |
 
 The host has its part too: `wasmtime serve` runs a component of wasi with
 `-S cli`, since wasi-libc imports parts of `wasi:cli`, and on wasip3 with
