@@ -43,7 +43,7 @@ is read; and by `response`, which checks that the body is a copy.
 chunks of at most 4096 bytes, the most `blocking-write-and-flush` takes; on
 wasip3 by writing until the stream has taken every byte. _Held by_
 `http_long_body`, whose body of three chunks and some bytes more arrives
-whole, on wasip2 and on wasip3. wasmtime 47 takes the whole body in one write
+whole, on wasip2 and on wasip3. wasmtime 50.0.1 takes the whole body in one write
 on wasip3, a body of 1{nbsp}MiB too, so it never makes the loop of wasip3 take
 a second turn: the test fails there when a write is cut short, and the loop
 stands for a host that takes less per write.

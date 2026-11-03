@@ -41,7 +41,7 @@ The handler sends no other header (<<wasi-invariant-7,guarantee 7>>).
 A response the handler cannot send as the main wrote it, with a status
 outside 100 to 599 or a content type the host refuses, is not sent at all:
 the handler answers an internal error, before it has committed anything, and
-wasmtime 47 sends that as its own `500 Internal Server Error`, an HTML page
+wasmtime 50.0.1 sends that as its own `500 Internal Server Error`, an HTML page
 that names it. Without the check, wasmtime would send some of those statuses
 as `200 OK`, and the status of `wasi:http`, 16 bits wide, would read 65736 as
 200, so a main's bug would reach the client as a success; and a content type

@@ -93,7 +93,7 @@ given `-W exceptions=y`; jco, whose `jco transpile` is given
 `--bindgen-enable-wasm-exnref`; or another engine of WebAssembly 3.0.
 
 wasi's handler catches nothing: an exception that escapes the main traps the
-instance, and wasmtime 47 answers the client with its own
+instance, and wasmtime 50.0.1 answers the client with its own
 `500 Internal Server Error` (<<wasi-main-rules>>). A main that may throw
 catches what it can answer itself.
 

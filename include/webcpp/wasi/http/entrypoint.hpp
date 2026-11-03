@@ -57,7 +57,7 @@ namespace webcpp::wasi::http {
  the main copies what it keeps beyond the request.
  @note The handler catches nothing. On wasip2 and wasip3, where webcpp builds
  a program with exceptions, an exception that escapes the main traps the
- instance: wasmtime 47 prints the trap and answers the client with its own
+ instance: wasmtime 50.0.1 prints the trap and answers the client with its own
  `500 Internal Server Error`.
  @see "Your main", in the guide.
 */

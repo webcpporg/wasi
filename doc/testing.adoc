@@ -200,7 +200,7 @@ A WASI build needs, besides b2 and Boost 1.92:
 | The `wit/deps` directories of the Rust crates `wasip2` 1.0.4 and `wasip3`
   0.9.0, which the bindings are generated from.
 
-| wasmtime 47.0.3
+| wasmtime 50.0.1
 | Runs every test and example, and serves each component.
 |===
 

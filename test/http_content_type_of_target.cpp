@@ -11,7 +11,7 @@
 //
 // It fails, every time, on a handler that frees the target before it reads
 // the content type, because the free itself overwrites the target. Each
-// request meets the heap the same: wasmtime 47 gives each request of wasip2 a
+// request meets the heap the same: wasmtime 50.0.1 gives each request of wasip2 a
 // fresh instance, and on wasip3, where it reuses one, every earlier request
 // gave back all it took. The bindings allocate the target as the request is
 // read, and the main the body after it, so the target's chunk lies between
